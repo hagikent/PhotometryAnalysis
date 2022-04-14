@@ -1,0 +1,598 @@
+#!/usr/bin/env python3
+# -*- coding: utf-8 -*-
+"""
+For photometry data pre-processing
+Modified from pyPhotometry pre-processing (by Akam)
+
+For 4-Fiber brances
+Column# in CSV Data
+Loc0:3
+Loc1:4
+Loc2:5
+Loc3:6
+...
+
+Started on Fri Mar  4 01:58:25 2022
+@author: Kenta M. Hagihara @SvobodaLab
+"""
+# clear all
+from IPython import get_ipython
+get_ipython().magic("reset -sf")
+
+#%% 
+import os
+import csv
+import numpy as  np
+import pylab as plt
+from scipy.signal import medfilt, butter, filtfilt
+from scipy.stats import linregress
+from scipy.optimize import curve_fit, minimize
+import glob
+
+#%% import 
+
+#Mac
+#AnalDir = "/Users/kenta/Library/CloudStorage/OneDrive-AllenInstitute/Data/220316"
+#AnalDir = "/Users/kenta/Library/CloudStorage/OneDrive-AllenInstitute/Data/220318/KH_FB2"
+#AnalDir = "/Users/kenta/Library/CloudStorage/OneDrive-AllenInstitute/Data/220321/KH_FB1"
+#AnalDir = "/Users/kenta/Library/CloudStorage/OneDrive-AllenInstitute/Data/220321/KH_FB2_1"
+#AnalDir = "/Users/kenta/Library/CloudStorage/OneDrive-AllenInstitute/Data/220322/KH_FB2"
+#AnalDir = "/Users/kenta/Library/CloudStorage/OneDrive-AllenInstitute/Data/220328/KH_FB4"
+#AnalDir = "/Users/kenta/Library/CloudStorage/OneDrive-AllenInstitute/Data/220329/KH_FB4"
+#AnalDir = "/Users/kenta/Library/CloudStorage/OneDrive-AllenInstitute/Data/220330/KH_FB4"
+AnalDir = "/Users/kenta/Library/CloudStorage/OneDrive-AllenInstitute/Data/220401/KH_FB4"
+AnalDir = "/Users/kenta/Library/CloudStorage/OneDrive-AllenInstitute/Data/220405/KH_FB5"
+AnalDir = "/Users/kenta/Library/CloudStorage/OneDrive-AllenInstitute/Data/220405/KH_FB6"
+AnalDir = "/Users/kenta/Library/CloudStorage/OneDrive-AllenInstitute/Data/220406/KH_FB5"
+AnalDir = "/Users/kenta/Library/CloudStorage/OneDrive-AllenInstitute/Data/220406/KH_FB6"
+AnalDir = "/Users/kenta/Library/CloudStorage/OneDrive-AllenInstitute/Data/220406/616295_HF"
+AnalDir = "/Users/kenta/Library/CloudStorage/OneDrive-AllenInstitute/Data/220406/KH_FB5_iso"
+AnalDir = "/Users/kenta/Library/CloudStorage/OneDrive-AllenInstitute/Data/220407/KH_FB5"
+AnalDir = "/Users/kenta/Library/CloudStorage/OneDrive-AllenInstitute/Data/220407/KH_FB6"
+
+AnalDir = "/Users/kenta/Library/CloudStorage/OneDrive-AllenInstitute/Data/220407/616295_2"
+AnalDir = "/Users/kenta/Library/CloudStorage/OneDrive-AllenInstitute/Data/220408/616268_NAc"
+
+#AnalDir = "/Users/kenta/Library/CloudStorage/OneDrive-AllenInstitute/Data/220409/KH_FB7"
+#AnalDir = "/Users/kenta/Library/CloudStorage/OneDrive-AllenInstitute/Data/220409/KH_FB8"
+AnalDir = "/Users/kenta/Library/CloudStorage/OneDrive-AllenInstitute/Data/220409/KH_FB9"
+
+AnalDir = "/Users/kenta/Library/CloudStorage/OneDrive-AllenInstitute/Data/220410/KH_FB7"
+AnalDir = "/Users/kenta/Library/CloudStorage/OneDrive-AllenInstitute/Data/220410/KH_FB8"
+AnalDir = "/Users/kenta/Library/CloudStorage/OneDrive-AllenInstitute/Data/220410/KH_FB9"
+
+AnalDir = "/Users/kenta/Library/CloudStorage/OneDrive-AllenInstitute/Data/220411/KH_FB7"
+AnalDir = "/Users/kenta/Library/CloudStorage/OneDrive-AllenInstitute/Data/220411/KH_FB8"
+AnalDir = "/Users/kenta/Library/CloudStorage/OneDrive-AllenInstitute/Data/220411/KH_FB9"
+
+AnalDir = "/Users/kenta/Library/CloudStorage/OneDrive-AllenInstitute/Data/220412/KH_FB4"
+#Win
+#AnalDir = r"C:\Users\kenta.hagihara\OneDrive - Allen Institute\Data\220323\KH_FB1"
+#AnalDir = r"C:\Users\kenta.hagihara\OneDrive - Allen Institute\Data\220323\KH_FB2"
+#AnalDir = r"C:\Users\kenta.hagihara\OneDrive - Allen Institute\Data\220324\KH_FB2"
+#AnalDir = r"C:\Users\kenta.hagihara\OneDrive - Allen Institute\Data\220408\616268_NAc"
+
+
+
+nFibers = 2
+nColor = 3
+sampling_rate = 20 #individual channel (not total)
+nFrame2cut = 100  #crop initial n frames
+b_percentile = 0.70 #To calculare F0, median of bottom x%
+
+  
+#BiExpFitIni = [1,1e-3,5,1e-3,5]
+BiExpFitIni = [1,1e-3,1,1e-3,1]  #currentlu not used
+
+file1  = glob.glob(AnalDir + os.sep + "L415*")[0]
+file2 = glob.glob(AnalDir + os.sep + "L470*")[0]
+file3 = glob.glob(AnalDir + os.sep + "L560*")[0]
+
+with open(file1) as f:
+    reader = csv.reader(f)
+    datatemp = np.array([row for row in reader])
+    data1 = datatemp[1:,:].astype(np.float32)
+    #del datatemp
+    
+with open(file2) as f:
+    reader = csv.reader(f)
+    datatemp = np.array([row for row in reader])
+    data2 = datatemp[1:,:].astype(np.float32)
+    #del datatemp
+    
+with open(file3) as f:
+    reader = csv.reader(f)
+    datatemp = np.array([row for row in reader])
+    data3 = datatemp[1:,:].astype(np.float32)
+    #del datatemp
+        
+# in case acquisition halted accidentally
+Length = np.amin([len(data1),len(data2),len(data3)])
+data1 = data1[0:Length] 
+data2 = data2[0:Length]
+data3 = data3[0:Length]
+ 
+#%% Data sort # 1,2:Time-Frame info; ROI0:3;ROI1:4,ROI2:5,ROI3:6;...
+Data_Fiber1iso = data1[:,3]
+Data_Fiber1G = data2[:,3]
+Data_Fiber1R = data3[:,5]
+ 
+Data_Fiber2iso = data1[:,4]
+Data_Fiber2G = data2[:,4]
+Data_Fiber2R = data3[:,6]
+
+#%% From here to be multiplexed
+
+#cropping
+G1_raw = Data_Fiber1G[nFrame2cut:]
+G2_raw = Data_Fiber2G[nFrame2cut:]
+R1_raw = Data_Fiber1R[nFrame2cut:]
+R2_raw = Data_Fiber2R[nFrame2cut:]
+Ctrl1_raw = Data_Fiber1iso[nFrame2cut:]
+Ctrl2_raw = Data_Fiber2iso[nFrame2cut:]
+
+time_seconds = np.arange(len(G1_raw)) /sampling_rate 
+
+#%% Raw signals
+plt.figure()
+plt.subplot(2,1,1)
+plt.plot(time_seconds, G1_raw, 'g', label='G1')
+plt.plot(time_seconds, R1_raw, 'r', label='R1')
+plt.plot(time_seconds, Ctrl1_raw, 'b', label='iso')
+plt.xlabel('Time (seconds)')
+plt.ylabel('CMOS Signal')
+plt.title('Raw signals:ROI1')
+plt.legend()
+
+plt.subplot(2,1,2)
+plt.plot(time_seconds, G2_raw, 'g', label='G2')
+plt.plot(time_seconds, R2_raw, 'r', label='R2')
+plt.plot(time_seconds, Ctrl2_raw, 'b', label='R2')
+plt.xlabel('Time (seconds)')
+plt.ylabel('CMOS Signal')
+plt.title('Raw signals:ROI12')
+plt.tight_layout()
+plt.legend()
+
+#%% Median filtering to remove electrical artifact.
+G1_denoised = medfilt(G1_raw, kernel_size=5)
+G2_denoised = medfilt(G2_raw, kernel_size=5)
+R1_denoised = medfilt(R1_raw, kernel_size=5)
+R2_denoised = medfilt(R2_raw, kernel_size=5)
+Ctrl1_denoised = medfilt(Ctrl1_raw, kernel_size=5)
+Ctrl2_denoised = medfilt(Ctrl2_raw, kernel_size=5)
+ 
+# Lowpass filter - zero phase filtering (with filtfilt) is used to avoid distorting the signal.
+b,a = butter(2, 9, btype='low', fs=sampling_rate)
+G1_denoised = filtfilt(b,a, G1_denoised)
+G2_denoised = filtfilt(b,a, G2_denoised)
+R1_denoised = filtfilt(b,a, R1_denoised)
+R2_denoised = filtfilt(b,a, R2_denoised)
+Ctrl1_denoised = filtfilt(b,a, Ctrl1_denoised)
+Ctrl2_denoised = filtfilt(b,a, Ctrl2_denoised)
+plt.legend()
+
+plt.figure()
+plt.subplot(2,1,1)
+plt.plot(time_seconds, G1_denoised, 'g', label='G1 denoised')
+plt.plot(time_seconds, R1_denoised, 'r', label='R1 denoised')
+plt.plot(time_seconds, Ctrl1_denoised, 'b', label='iso1 denoised') 
+plt.title('Denoised signals:ROI1')
+plt.legend()
+
+plt.subplot(2,1,2)
+plt.plot(time_seconds, G2_denoised, 'g', label='G1 denoised')
+plt.plot(time_seconds, R2_denoised, 'r', label='R1 denoised')
+plt.plot(time_seconds, Ctrl2_denoised, 'b', label='iso1 denoised') 
+plt.title('Denoised signals:ROI2')
+plt.tight_layout()
+plt.legend()
+
+#%% Photobleaching correction by LowCut
+'''
+b,a = butter(2, 0.05, btype='high', fs=sampling_rate)
+G1_highpass = filtfilt(b,a, G1_denoised, padtype='even')
+G2_highpass = filtfilt(b,a, G2_denoised, padtype='even')
+R1_highpass = filtfilt(b,a, R1_denoised, padtype='even')
+R2_highpass = filtfilt(b,a, R2_denoised, padtype='even')
+Ctrl1_highpass = filtfilt(b,a, Ctrl1_denoised, padtype='even')
+Ctrl2_highpass = filtfilt(b,a, Ctrl2_denoised, padtype='even')
+
+plt.figure()
+plt.subplot(1,2,1)
+plt.plot(time_seconds, G1_highpass,'g', label='G1 highpass')
+plt.plot(time_seconds, R1_highpass,'r', label='R1 highpass')
+plt.plot(time_seconds, Ctrl1_highpass,'b', label='iso1 highpass')
+
+plt.subplot(1,2,2)
+plt.plot(time_seconds, G2_highpass,'g', label='G2 highpass')
+plt.plot(time_seconds, R2_highpass,'r', label='R2 highpass')
+plt.plot(time_seconds, Ctrl2_highpass,'b', label='iso2 highpass')
+plt.xlabel('Time (seconds)')
+plt.ylabel('CMOS Signal')
+plt.title('Bleaching correction by highpass filtering')
+plt.legend();
+'''
+#%% Bi-exponential curve fit.
+'''
+#def exp_func(x, a, b, c):
+#   return a*np.exp(-b*x) + c
+
+def biexpF(x, a, b, c, d, e):
+    return a * np.exp(-b * x) + c * np.exp(-d * x) + e
+
+# Fit curve to signals.
+G1_parms, parm_cov1 = curve_fit(biexpF, time_seconds, G1_denoised, p0=BiExpFitIni,maxfev=5000)
+G1_expfit = biexpF(time_seconds, *G1_parms)
+G2_parms, parm_cov2 = curve_fit(biexpF, time_seconds, G2_denoised, p0=BiExpFitIni,maxfev=5000)
+G2_expfit = biexpF(time_seconds, *G2_parms)
+R1_parms, parm_cov1 = curve_fit(biexpF, time_seconds, R1_denoised, p0=BiExpFitIni,maxfev=5000)
+R1_expfit = biexpF(time_seconds, *R1_parms)
+R2_parms, parm_cov2 = curve_fit(biexpF, time_seconds, R2_denoised, p0=BiExpFitIni,maxfev=5000)
+R2_expfit = biexpF(time_seconds, *R2_parms)
+
+# Fit curve to ctrl.
+Ctrl1_parms, parm_cov = curve_fit(biexpF, time_seconds, Ctrl1_denoised, p0=BiExpFitIni,maxfev=5000)
+Ctrl1_expfit = biexpF(time_seconds, *Ctrl1_parms)
+Ctrl2_parms, parm_cov = curve_fit(biexpF, time_seconds, Ctrl2_denoised, p0=BiExpFitIni,maxfev=5000)
+Ctrl2_expfit = biexpF(time_seconds, *Ctrl2_parms)
+
+plt.figure()
+plt.subplot(1,2,1)
+plt.plot(time_seconds, G1_denoised, 'g', label='G1_denoised')
+plt.plot(time_seconds, R1_denoised, 'r', label='R1_denoised')
+plt.plot(time_seconds, Ctrl1_denoised, 'b', label='iso1_denoised')
+plt.plot(time_seconds, G1_expfit,'k', linewidth=1.5) 
+plt.plot(time_seconds, R1_expfit,'k', linewidth=1.5) 
+plt.plot(time_seconds, Ctrl1_expfit,'k', linewidth=1.5) 
+plt.title('Bi-exponential fit to bleaching.')
+plt.xlabel('Time (seconds)');
+
+plt.subplot(1,2,2)
+plt.plot(time_seconds, G2_denoised, 'g', label='G2_denoised')
+plt.plot(time_seconds, R2_denoised, 'r', label='R2_denoised')
+plt.plot(time_seconds, Ctrl2_denoised, 'b', label='iso2_denoised')
+plt.plot(time_seconds, G2_expfit,'k', linewidth=1.5) 
+plt.plot(time_seconds, R2_expfit,'k', linewidth=1.5) 
+plt.plot(time_seconds, Ctrl2_expfit,'k', linewidth=1.5) 
+plt.title('Bi-exponential fit to bleaching.')
+plt.xlabel('Time (seconds)');
+
+G1_es = G1_denoised - G1_expfit
+G2_es = G2_denoised - G2_expfit
+R1_es = R1_denoised - R1_expfit
+R2_es = R2_denoised - R2_expfit
+Ctrl1_es = Ctrl1_denoised - Ctrl1_expfit
+Ctrl2_es = Ctrl2_denoised - Ctrl2_expfit
+
+plt.figure()
+plt.subplot(1,2,1)
+plt.plot(time_seconds, G1_es, 'g', label='G1')
+plt.plot(time_seconds, R1_es, 'r', label='R1')
+plt.plot(time_seconds, Ctrl1_es, 'b', label='iso1')
+plt.title('Bleaching correction by subtraction of biexponential fit')
+plt.xlabel('Time (seconds)');
+plt.subplot(1,2,2)
+plt.plot(time_seconds, G2_es, 'g', label='G2')
+plt.plot(time_seconds, R2_es, 'r', label='R2')
+plt.plot(time_seconds, Ctrl2_es, 'b', label='iso2')
+plt.title('Bleaching correction by subtraction of biexponential fit')
+plt.xlabel('Time (seconds)');
+
+'''
+#%%
+# Fit 4th order polynomial to signals.
+coefs_G1 = np.polyfit(time_seconds, G1_denoised, deg=4)
+G1_polyfit = np.polyval(coefs_G1, time_seconds)
+coefs_G2 = np.polyfit(time_seconds, G2_denoised, deg=4)
+G2_polyfit = np.polyval(coefs_G2, time_seconds)
+coefs_R1 = np.polyfit(time_seconds, R1_denoised, deg=4)
+R1_polyfit = np.polyval(coefs_R1, time_seconds)
+coefs_R2 = np.polyfit(time_seconds, R2_denoised, deg=4)
+R2_polyfit = np.polyval(coefs_R2, time_seconds)
+
+# Fit 4th order polynomial to Ctrl.
+coefs_Ctrl1 = np.polyfit(time_seconds, Ctrl1_denoised, deg=4)
+Ctrl1_polyfit = np.polyval(coefs_Ctrl1, time_seconds)
+coefs_Ctrl2 = np.polyfit(time_seconds, Ctrl2_denoised, deg=4)
+Ctrl2_polyfit = np.polyval(coefs_Ctrl2, time_seconds)
+
+# Plot fits
+plt.figure()
+plt.subplot(2,1,1)
+plt.plot(time_seconds, G1_denoised, 'g', label='G1_denoised')
+plt.plot(time_seconds, R1_denoised, 'r', label='R1_denoised')
+plt.plot(time_seconds, Ctrl1_denoised, 'b', label='iso1_denoised')
+plt.plot(time_seconds, G1_polyfit,'k', linewidth=1.5) 
+plt.plot(time_seconds, R1_polyfit,'k', linewidth=1.5) 
+plt.plot(time_seconds, Ctrl1_polyfit,'k', linewidth=1.5) 
+plt.title('polyfi ROI1')
+plt.xlabel('Time (seconds)');
+
+plt.subplot(2,1,2)
+plt.plot(time_seconds, G2_denoised, 'g', label='G2_denoised')
+plt.plot(time_seconds, R2_denoised, 'r', label='R2_denoised')
+plt.plot(time_seconds, Ctrl2_denoised, 'b', label='iso2_denoised')
+plt.plot(time_seconds, G2_polyfit,'k', linewidth=1.5) 
+plt.plot(time_seconds, R2_polyfit,'k', linewidth=1.5) 
+plt.plot(time_seconds, Ctrl2_polyfit,'k', linewidth=1.5) 
+plt.title('polyfit ROI2')
+plt.xlabel('Time (seconds)');
+
+G1_es = G1_denoised - G1_polyfit
+G2_es = G2_denoised - G2_polyfit
+R1_es = R1_denoised - R1_polyfit
+R2_es = R2_denoised - R2_polyfit
+Ctrl1_es = Ctrl1_denoised - Ctrl1_polyfit
+Ctrl2_es = Ctrl2_denoised - Ctrl2_polyfit
+
+plt.figure()
+plt.subplot(2,1,1)
+plt.plot(time_seconds, Ctrl1_es, 'b', label='iso1_estim')
+plt.plot(time_seconds, G1_es, 'g', label='G1_estim')
+plt.plot(time_seconds, R1_es, 'r', label='R1_estim')
+
+plt.subplot(2,1,2)
+plt.plot(time_seconds, Ctrl2_es, 'b', label='iso2_estim')
+plt.plot(time_seconds, G2_es, 'g', label='G2_estim')
+plt.plot(time_seconds, R2_es, 'r', label='R2_estim')
+
+plt.title('polyfit ROI2')
+plt.xlabel('Time (seconds)');
+
+#%%Additional LowCut
+'''
+b,a = butter(2, 0.1, btype='high', fs=sampling_rate)
+G1_es2 = filtfilt(b,a, G1_es, padtype='even')
+G2_es2 = filtfilt(b,a, G2_es, padtype='even')
+R1_es2 = filtfilt(b,a, R1_es, padtype='even')
+R2_es2 = filtfilt(b,a, R2_es, padtype='even')
+Ctrl1_es2 = filtfilt(b,a, Ctrl1_es, padtype='even')
+Ctrl2_es2 = filtfilt(b,a, Ctrl2_es, padtype='even')
+
+plt.figure()
+plt.subplot(1,2,1)
+plt.plot(time_seconds, G1_es2,'g', label='G1 highpass')
+plt.plot(time_seconds, R1_es2,'r', label='R1 highpass')
+plt.plot(time_seconds, Ctrl1_es2,'b', label='iso1 highpass')
+
+plt.subplot(1,2,2)
+plt.plot(time_seconds, G2_es2,'g', label='G2 highpass')
+plt.plot(time_seconds, R2_es2,'r', label='R2 highpass')
+plt.plot(time_seconds, Ctrl2_es2,'b', label='iso2 highpass')
+plt.xlabel('Time (seconds)')
+plt.ylabel('CMOS Signal')
+plt.title('Bleaching correction by highpass filtering')
+plt.legend();
+'''
+
+#%% Motion correction using iso
+slopeG1, interceptG1, r_valueG1, p_valueG1, std_errG1 = linregress(x=Ctrl1_es, y=G1_es)
+slopeG2, interceptG2, r_valueG2, p_valueG2, std_errG2 = linregress(x=Ctrl2_es, y=G2_es)
+slopeR1, interceptR1, r_valueR1, p_valueR1, std_errR1 = linregress(x=Ctrl1_es, y=R1_es)
+slopeR2, interceptR2, r_valueR2, p_valueR2, std_errR2 = linregress(x=Ctrl2_es, y=R2_es)
+
+plt.figure()
+plt.subplot(2,2,1)
+plt.scatter(Ctrl1_es[::5], G1_es[::5],alpha=0.1, marker='.')
+x = np.array(plt.xlim())
+plt.plot(x, interceptG1+slopeG1*x)
+plt.xlabel('iso1')
+plt.ylabel('G1')
+plt.title('iso - G correlation.')
+
+plt.subplot(2,2,2)
+plt.scatter(Ctrl1_es[::5], G1_es[::5],alpha=0.1, marker='.')
+x = np.array(plt.xlim())
+plt.plot(x, interceptG1+slopeG1*x)
+plt.xlabel('iso2')
+plt.ylabel('G2')
+plt.title('iso - G correlation.')
+
+plt.subplot(2,2,3)
+plt.scatter(Ctrl1_es[::5], R1_es[::5],alpha=0.1, marker='.')
+x = np.array(plt.xlim())
+plt.plot(x, interceptR1+slopeR1*x)
+plt.xlabel('iso1')
+plt.ylabel('R1')
+plt.title('iso - R correlation.')
+
+plt.subplot(2,2,4)
+plt.scatter(Ctrl2_es[::5], R2_es[::5],alpha=0.1, marker='.')
+x = np.array(plt.xlim())
+plt.plot(x, interceptR2+slopeR2*x)
+plt.xlabel('iso2')
+plt.ylabel('R2')
+plt.title('iso - R correlation.')
+plt.tight_layout()
+
+print('SlopeG1    : {:.3f}'.format(slopeG1))
+print('R-squaredG1: {:.3f}'.format(r_valueG1**2))
+print('SlopeG2    : {:.3f}'.format(slopeG2))
+print('R-squaredG2: {:.3f}'.format(r_valueG2**2))
+
+print('SlopeR1    : {:.3f}'.format(slopeR1))
+print('R-squaredR1: {:.3f}'.format(r_valueR1**2))
+print('SlopeR2    : {:.3f}'.format(slopeR2))
+print('R-squaredR2: {:.3f}'.format(r_valueR2**2))
+
+#% motion corrected
+G1_est_motion = interceptG1 + slopeG1 * Ctrl1_es
+G1_corrected = G1_es - G1_est_motion
+G2_est_motion = interceptG2 + slopeG2 * Ctrl2_es
+G2_corrected = G2_es - G2_est_motion
+
+R1_est_motion = interceptR1 + slopeR1 * Ctrl1_es
+R1_corrected = R1_es - G1_est_motion
+R2_est_motion = interceptR2 + slopeR2 * Ctrl2_es
+R2_corrected = R2_es - R2_est_motion
+
+plt.figure()
+plt.subplot(2,2,1)
+plt.plot(time_seconds, G1_es , label='G1 - pre motion correction')
+plt.plot(time_seconds, G1_corrected, 'g', label='G1 - motion corrected')
+plt.plot(time_seconds, G1_est_motion - 0.001, 'y', label='estimated motion')
+plt.xlabel('Time (seconds)')
+plt.title('Motion correction G1')
+plt.legend()
+
+plt.subplot(2,2,2)
+plt.plot(time_seconds, G2_es , label='G2 - pre motion correction')
+plt.plot(time_seconds, G2_corrected, 'g', label='G2 - motion corrected')
+plt.plot(time_seconds, G2_est_motion - 0.001, 'y', label='estimated motion')
+plt.xlabel('Time (seconds)')
+plt.title('Motion correction G2')
+plt.legend()
+
+plt.subplot(2,2,3)
+plt.plot(time_seconds, R1_es , label='R1 - pre motion correction')
+plt.plot(time_seconds, R1_corrected, 'r', label='R1 - motion corrected')
+plt.plot(time_seconds, R1_est_motion - 0.001, 'y', label='estimated motion')
+plt.xlabel('Time (seconds)')
+plt.title('Motion correction R1')
+plt.legend()
+
+plt.subplot(2,2,4)
+plt.plot(time_seconds, R2_es , label='R2 - pre motion correction')
+plt.plot(time_seconds, R2_corrected, 'r', label='R2 - motion corrected')
+plt.plot(time_seconds, R2_est_motion - 0.001, 'y', label='estimated motion')
+plt.xlabel('Time (seconds)')
+plt.title('Motion correction R2')
+plt.legend()
+
+plt.tight_layout()
+
+#%% dF/F using sliding baseline
+b,a = butter(2, 0.0001, btype='low', fs=sampling_rate)
+G1_baseline = filtfilt(b,a, G1_denoised, padtype='even')
+G2_baseline = filtfilt(b,a, G2_denoised, padtype='even')
+R1_baseline = filtfilt(b,a, R1_denoised, padtype='even')
+R2_baseline = filtfilt(b,a, R2_denoised, padtype='even')
+
+Ctrl1_baseline = filtfilt(b,a, Ctrl1_denoised, padtype='even')
+Ctrl2_baseline = filtfilt(b,a, Ctrl2_denoised, padtype='even')
+
+#G1_dF_F = G1_corrected/G1_baseline
+G1_dF_F = G1_es/G1_baseline
+sort = np.sort(G1_dF_F)
+b_median = np.median(sort[0:round(len(sort) * b_percentile)])
+G1_dF_F = G1_dF_F - b_median
+
+#G2_dF_F = G2_corrected/G2_baseline
+G2_dF_F = G2_es/G2_baseline
+sort = np.sort(G2_dF_F)
+b_median = np.median(sort[0:round(len(sort) * b_percentile)])
+G2_dF_F = G2_dF_F - b_median
+
+#R1_dF_F = R1_corrected/R1_baseline
+R1_dF_F = R1_es/R1_baseline
+sort = np.sort(R1_dF_F)
+b_median = np.median(sort[0:round(len(sort) * b_percentile)])
+R1_dF_F = R1_dF_F - b_median
+
+#R2_dF_F = R2_corrected/R2_baseline
+R2_dF_F = R2_es/R2_baseline
+sort = np.sort(R2_dF_F)
+b_median = np.median(sort[0:round(len(sort) * b_percentile)])
+R2_dF_F = R2_dF_F - b_median
+
+Ctrl1_dF_F = Ctrl1_es/Ctrl1_baseline
+sort = np.sort(Ctrl1_dF_F)
+b_median = np.median(sort[0:round(len(sort) * b_percentile)])
+Ctrl1_dF_F = Ctrl1_dF_F - b_median
+
+Ctrl2_dF_F = Ctrl2_es/Ctrl2_baseline
+sort = np.sort(Ctrl2_dF_F)
+b_median = np.median(sort[0:round(len(sort) * b_percentile)])
+Ctrl2_dF_F = Ctrl2_dF_F - b_median
+
+
+#%%
+G1_dF_F = np.append(np.ones([nFrame2cut,1])*G1_dF_F[0],G1_dF_F)
+G2_dF_F = np.append(np.ones([nFrame2cut,1])*G2_dF_F[0],G2_dF_F)
+R1_dF_F = np.append(np.ones([nFrame2cut,1])*R1_dF_F[0],R1_dF_F)
+R2_dF_F = np.append(np.ones([nFrame2cut,1])*R2_dF_F[0],R2_dF_F)
+
+Ctrl1_dF_F = np.append(np.ones([nFrame2cut,1])*Ctrl1_dF_F[0],Ctrl1_dF_F)
+Ctrl2_dF_F = np.append(np.ones([nFrame2cut,1])*Ctrl2_dF_F[0],Ctrl2_dF_F)
+
+#%%
+time_seconds = np.arange(len(G1_dF_F)) /sampling_rate 
+
+plt.figure()
+plt.subplot(3,2,1)
+plt.plot(time_seconds, G1_dF_F*100, 'g')
+plt.plot(time_seconds, np.zeros(len(time_seconds)),'--k')
+plt.xlabel('Time (seconds)')
+plt.ylabel('G dF/F (%)')
+plt.title('G1 dF/F')
+plt.grid(True)
+
+plt.subplot(3,2,2)
+plt.plot(time_seconds, G2_dF_F*100, 'g')
+plt.plot(time_seconds, np.zeros(len(time_seconds)),'--k')
+plt.xlabel('Time (seconds)')
+plt.ylabel('G dF/F (%)')
+plt.title('G2 dF/F')
+plt.grid(True)
+
+plt.subplot(3,2,3)
+plt.plot(time_seconds, R1_dF_F*100, 'r')
+plt.plot(time_seconds, np.zeros(len(time_seconds)),'--k')
+plt.xlabel('Time (seconds)')
+plt.ylabel('R dF/F (%)')
+plt.title('R1 dF/F')
+plt.grid(True)
+
+plt.subplot(3,2,4)
+plt.plot(time_seconds, R2_dF_F*100, 'r')
+plt.plot(time_seconds, np.zeros(len(time_seconds)),'--k')
+plt.xlabel('Time (seconds)')
+plt.ylabel('R dF/F (%)')
+plt.title('R2 dF/F')
+plt.grid(True)
+
+plt.subplot(3,2,5)
+plt.plot(time_seconds, Ctrl1_dF_F*100, 'b')
+plt.plot(time_seconds, np.zeros(len(time_seconds)),'--k')
+plt.xlabel('Time (seconds)')
+plt.ylabel('Ctrl dF/F (%)')
+plt.title('Ctrl1 dF/F')
+plt.grid(True)
+
+plt.subplot(3,2,6)
+plt.plot(time_seconds, Ctrl2_dF_F*100, 'b')
+plt.plot(time_seconds, np.zeros(len(time_seconds)),'--k')
+plt.xlabel('Time (seconds)')
+plt.ylabel('Ctrl dF/F (%)')
+plt.title('Ctrl2 dF/F')
+plt.grid(True)
+plt.tight_layout()
+
+#%% Save
+np.save(AnalDir + os.sep + "G1_dF_F", G1_dF_F)
+np.save(AnalDir + os.sep + "G2_dF_F", G2_dF_F)
+np.save(AnalDir + os.sep + "R1_dF_F", R1_dF_F)
+np.save(AnalDir + os.sep + "R2_dF_F", R2_dF_F)
+np.save(AnalDir + os.sep + "Ctrl1_dF_F", Ctrl1_dF_F)
+np.save(AnalDir + os.sep + "Ctrl2_dF_F", Ctrl2_dF_F)
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
