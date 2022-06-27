@@ -6,11 +6,13 @@ Modified from pyPhotometry pre-processing (by Akam)
 
 For 4-Fiber brances
 Column# in CSV Data
-Loc0:3
-Loc1:4
-Loc2:5
-Loc3:6
-...
+Loc0:3 -> 8
+Loc1:4 -> 9
+Loc2:5 -> 10
+Loc3:6 -> 11
+______________
+22061x-
+8,9,10,11
 
 Started on Fri Mar  4 01:58:25 2022
 @author: Kenta M. Hagihara @SvobodaLab
@@ -32,10 +34,10 @@ import glob
 #%% import 
 
 #Mac
-#AnalDir = "/Users/kenta/Library/CloudStorage/OneDrive-AllenInstitute/Data/xxxx"
+#AnalDir = "/Users/kenta/Library/CloudStorage/OneDrive-AllenInstitute/Data/220421/KH_FB10"
 
 #Win
-#AnalDir = r"C:\Users\kenta.hagihara\OneDrive - Allen Institute\Data\xxxx"
+AnalDir = r"C:\Users\kenta.hagihara\OneDrive - Allen Institute\Data\220626\KH_FB27"
 
 nFibers = 2
 nColor = 3
@@ -76,13 +78,22 @@ data2 = data2[0:Length]
 data3 = data3[0:Length]
  
 #%% Data sort # 1,2:Time-Frame info; ROI0:3;ROI1:4,ROI2:5,ROI3:6;...
-Data_Fiber1iso = data1[:,3]
-Data_Fiber1G = data2[:,3]
-Data_Fiber1R = data3[:,5]
+#Data_Fiber1iso = data1[:,3]
+#Data_Fiber1G = data2[:,3]
+#Data_Fiber1R = data3[:,5]
  
-Data_Fiber2iso = data1[:,4]
-Data_Fiber2G = data2[:,4]
+#Data_Fiber2iso = data1[:,4]
+##Data_Fiber2G = data2[:,4]
 Data_Fiber2R = data3[:,6]
+#%% from 220609-, ROI0:8;ROI1:9,ROI2:10,ROI3:11;
+Data_Fiber1iso = data1[:,8]
+Data_Fiber1G = data2[:,8]
+Data_Fiber1R = data3[:,10]
+ 
+Data_Fiber2iso = data1[:,9]
+Data_Fiber2G = data2[:,9]
+Data_Fiber2R = data3[:,11]
+
 
 #%% From here to be multiplexed
 
@@ -118,10 +129,11 @@ plt.tight_layout()
 plt.legend()
 
 #%% Median filtering to remove electrical artifact.
-G1_denoised = medfilt(G1_raw, kernel_size=5)
-G2_denoised = medfilt(G2_raw, kernel_size=5)
-R1_denoised = medfilt(R1_raw, kernel_size=5)
-R2_denoised = medfilt(R2_raw, kernel_size=5)
+kernelSize=1
+G1_denoised = medfilt(G1_raw, kernel_size=kernelSize)
+G2_denoised = medfilt(G2_raw, kernel_size=kernelSize)
+R1_denoised = medfilt(R1_raw, kernel_size=kernelSize)
+R2_denoised = medfilt(R2_raw, kernel_size=kernelSize)
 Ctrl1_denoised = medfilt(Ctrl1_raw, kernel_size=5)
 Ctrl2_denoised = medfilt(Ctrl2_raw, kernel_size=5)
  
