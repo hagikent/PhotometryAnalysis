@@ -27,74 +27,18 @@ get_ipython().magic("reset -sf")
 #%%
 import os
 import numpy as np
+import pandas as pd
 import pylab as plt
 import csv
 import glob
 
-#Mac
-
-#NMs
+#Mac Example
 #AnalDir = "/Users/kenta/Library/CloudStorage/OneDrive-AllenInstitute/Data/220409/KH_FB7"
-#AnalDir = "/Users/kenta/Library/CloudStorage/OneDrive-AllenInstitute/Data/220409/KH_FB8"
-#AnalDir = "/Users/kenta/Library/CloudStorage/OneDrive-AllenInstitute/Data/220409/KH_FB9"
-
-#AnalDir = "/Users/kenta/Library/CloudStorage/OneDrive-AllenInstitute/Data/220410/KH_FB7"
-#AnalDir = "/Users/kenta/Library/CloudStorage/OneDrive-AllenInstitute/Data/220410/KH_FB8"
-#AnalDir = "/Users/kenta/Library/CloudStorage/OneDrive-AllenInstitute/Data/220410/KH_FB9"
-
-#AnalDir = "/Users/kenta/Library/CloudStorage/OneDrive-AllenInstitute/Data/220411/KH_FB7"
-#AnalDir = "/Users/kenta/Library/CloudStorage/OneDrive-AllenInstitute/Data/220411/KH_FB8"
-#AnalDir = "/Users/kenta/Library/CloudStorage/OneDrive-AllenInstitute/Data/220411/KH_FB9"
-#AnalDir = "/Users/kenta/Library/CloudStorage/OneDrive-AllenInstitute/Data/220420/KH_FB10_1"
-#AnalDir = "/Users/kenta/Library/CloudStorage/OneDrive-AllenInstitute/Data/220421/KH_FB10"
-#AnalDir = "/Users/kenta/Library/CloudStorage/OneDrive-AllenInstitute/Data/220422/KH_FB10"
 
 #Win
-#AnalDir = r"C:\Users\kenta.hagihara\OneDrive - Allen Institute\Data\220323\KH_FB1"
-#AnalDir = r"C:\Users\kenta.hagihara\OneDrive - Allen Institute\Data\220421\KH_FB10"
-AnalDir = r"C:\Users\kenta.hagihara\OneDrive - Allen Institute\Data\220502\KH_FB8"
-AnalDir = r"C:\Users\kenta.hagihara\OneDrive - Allen Institute\Data\220504\KH_FB8"
 
-AnalDir = r"C:\Users\kenta.hagihara\OneDrive - Allen Institute\Data\220506\KH_FB15"
-AnalDir = r"C:\Users\kenta.hagihara\OneDrive - Allen Institute\Data\220506\KH_FB8"
-AnalDir = r"C:\Users\kenta.hagihara\OneDrive - Allen Institute\Data\220505\KH_FB8"
-AnalDir = r"C:\Users\kenta.hagihara\OneDrive - Allen Institute\Data\220509\KH_FB16_halted"
-#AnalDir = r"C:\Users\kenta.hagihara\OneDrive - Allen Institute\Data\220509\KH_FB15"
-AnalDir = r"C:\Users\kenta.hagihara\OneDrive - Allen Institute\Data\220512\KH_FB16"
-AnalDir = r"C:\Users\kenta.hagihara\OneDrive - Allen Institute\Data\220516\KH_FB13"
-#AnalDir = r"C:\Users\kenta.hagihara\OneDrive - Allen Institute\Data\220516\KH_FB14"
-AnalDir = r"C:\Users\kenta.hagihara\OneDrive - Allen Institute\Data\220517\KH_FB8"
-AnalDir = r"C:\Users\kenta.hagihara\OneDrive - Allen Institute\Data\220518\KH_FB14"
-AnalDir = r"C:\Users\kenta.hagihara\OneDrive - Allen Institute\Data\220518\KH_FB8"
-AnalDir = r"C:\Users\kenta.hagihara\OneDrive - Allen Institute\Data\220523\KH_FB14"
-AnalDir = r"C:\Users\kenta.hagihara\OneDrive - Allen Institute\Data\220524\KH_FB8"
-#AnalDir = r"C:\Users\kenta.hagihara\OneDrive - Allen Institute\Data\220524\KH_FB14"
-#AnalDir = r"C:\Users\kenta.hagihara\OneDrive - Allen Institute\Data\220603\SS_FB1_1"
-#AnalDir = r"C:\Users\kenta.hagihara\OneDrive - Allen Institute\Data\220603\SS_FB1_2"
-#AnalDir = r"C:\Users\kenta.hagihara\OneDrive - Allen Institute\Data\220603\KH_FB19"
-#AnalDir = r"C:\Users\kenta.hagihara\OneDrive - Allen Institute\Data\220616\KH_FB8"
 AnalDir = r"C:\Users\kenta.hagihara\OneDrive - Allen Institute\Data\220614\KH_FB8"
-#AnalDir = r"C:\Users\kenta.hagihara\OneDrive - Allen Institute\Data\220615\KH_FB13"
-#AnalDir = r"C:\Users\kenta.hagihara\OneDrive - Allen Institute\Data\220616\KH_FB14"
-#AnalDir = r"C:\Users\kenta.hagihara\OneDrive - Allen Institute\Data\220609\KH_FB17"
-#AnalDir = r"C:\Users\kenta.hagihara\OneDrive - Allen Institute\Data\220610\KH_FB17"
-#AnalDir = r"C:\Users\kenta.hagihara\OneDrive - Allen Institute\Data\220617\KH_FB20"
-#AnalDir = r"C:\Users\kenta.hagihara\OneDrive - Allen Institute\Data\220601\KH_FB14"
-#AnalDir = r"C:\Users\kenta.hagihara\OneDrive - Allen Institute\Data\220527\KH_FB14"
-#AnalDir = r"C:\Users\kenta.hagihara\OneDrive - Allen Institute\Data\220613\KH_FB22"
-#AnalDir = r"C:\Users\kenta.hagihara\OneDrive - Allen Institute\Data\220621\KH_FB17"
-#AnalDir = r"C:\Users\kenta.hagihara\OneDrive - Allen Institute\Data\220622\KH_FB14"
-#AnalDir = r"C:\Users\kenta.hagihara\OneDrive - Allen Institute\Data\220622\KH_FB17"
-#AnalDir = r"C:\Users\kenta.hagihara\OneDrive - Allen Institute\Data\220623\KH_FB26"
-#AnalDir = r"C:\Users\kenta.hagihara\OneDrive - Allen Institute\Data\220623\KH_FB27"
-#AnalDir = r"C:\Users\kenta.hagihara\OneDrive - Allen Institute\Data\220624\KH_FB26"
-#AnalDir = r"C:\Users\kenta.hagihara\OneDrive - Allen Institute\Data\220624\KH_FB14"
-#AnalDir = r"C:\Users\kenta.hagihara\OneDrive - Allen Institute\Data\220625\KH_FB26"
-#AnalDir = r"C:\Users\kenta.hagihara\OneDrive - Allen Institute\Data\220625\KH_FB27"
-#AnalDir = r"C:\Users\kenta.hagihara\OneDrive - Allen Institute\Data\220626\KH_FB26"
-#AnalDir = r"C:\Users\kenta.hagihara\OneDrive - Allen Institute\Data\220626\KH_FB27"
-#AnalDir = r"C:\Users\kenta.hagihara\OneDrive - Allen Institute\Data\220627\KH_FB17_2"
-#AnalDir = r"C:\Users\kenta.hagihara\OneDrive - Allen Institute\Data\220627\KH_FB27"
+
 FlagNoRawLick = 0
 
 #GCaMP_dF_F = np.load(glob.glob(AnalDir + os.sep + "GCaMP_dF_F.npy")[0])
@@ -539,13 +483,19 @@ plt.title("CueTriggered_`Ignored")
 #%% Response Table Based-on Barcode
 
 ###
-#Trial assignment based on "TTL length=20
+
+#Trial assignment based on Barcode ("TTL length=20")
 #Values to be collected here  
-#  1. Barchar: for behavior modeling alignment
+#  1. BarChar: for behavior modeling alignment
 #  2. Action_ID: #1:L/2:R/0:Ignore
 #  3. Reward_ID: #0:UnRewarded / 1:Rewarded
-#  4. 
-#
+#  4. CueTime_FPf: timing of gocue, in photometry frameN
+#  5. CueTime_NI: timing of gocue, in NI time (1kHz)
+#  6. ActionTime_FP: timing of action/choice, in photometry frameN
+#  7. ActionTime_NI: timing of action/choice, in NI time (1kHz)
+#  8. Resp_: averaged dF/F per trial; e:early,l:late,t:tail; based:baseline subtracted
+#  9. PSTH_all: 
+
 ###
 
 temp=[1,2,3,20,30,40]
@@ -563,9 +513,9 @@ TTL_p_T = TTL_p_align[non10] #NI time
 trialN=0
 Action_ID = np.empty(len(TTL_l_align_T[TTL_l_align_T==20])) #1:L/2:R/0:Ignore
 Reward_ID = np.empty(len(TTL_l_align_T[TTL_l_align_T==20]))  #0:UnRewarded / 1:Rewarded
-CueTime_Bonsai = np.empty(len(TTL_l_align_T[TTL_l_align_T==20])) 
+CueTime_FPf = np.empty(len(TTL_l_align_T[TTL_l_align_T==20])) 
 CueTime_NI = np.empty(len(TTL_l_align_T[TTL_l_align_T==20])) 
-ActionTime_Bonsai = np.empty(len(TTL_l_align_T[TTL_l_align_T==20])) 
+ActionTime_FPf = np.empty(len(TTL_l_align_T[TTL_l_align_T==20])) 
 ActionTime_NI = np.empty(len(TTL_l_align_T[TTL_l_align_T==20])) 
 
 for ii in range(len(TTL_l_align_T)):
@@ -587,34 +537,115 @@ for ii in range(len(TTL_l_align_T)):
                 Reward_ID[trialN] = 0
         
         ##
-        CueTime_Bonsai[trialN] = TTL_p_align_T[ii+1]
+        CueTime_FPf[trialN] = TTL_p_align_T[ii+1]
         CueTime_NI[trialN] = TTL_p_T[ii+1]
-        ActionTime_Bonsai[trialN] = TTL_p_align_T[ii+2]
+        ActionTime_FPf[trialN] = TTL_p_align_T[ii+2]
         ActionTime_NI[trialN] = TTL_p_T[ii+2]        
         
         trialN = trialN+1
 ### Loop end     
         
-ActionTime_Bonsai[Action_ID==0] = None
+ActionTime_FPf[Action_ID==0] = None
 ActionTime_NI[Action_ID==0] = None
 
-
-
 # ToDo: dF/F integral
+Resp_e = np.empty(len(TTL_l_align_T[TTL_l_align_T==20])) # early:0-250ms Windows To Be Optimized
+Resp_l = np.empty(len(TTL_l_align_T[TTL_l_align_T==20])) # late:250-2000ms
+Resp_t = np.empty(len(TTL_l_align_T[TTL_l_align_T==20])) # tail:4000-8000ms
+Resp_base = np.empty(len(TTL_l_align_T[TTL_l_align_T==20])) # base:-250-0ms
+Resp_e_based = np.empty(len(TTL_l_align_T[TTL_l_align_T==20])) # 
+Resp_l_based = np.empty(len(TTL_l_align_T[TTL_l_align_T==20])) # 
+Resp_t_based = np.empty(len(TTL_l_align_T[TTL_l_align_T==20])) # 
+
+TC=GCaMP_dF_F # Time Course to calculate responses
+
+for ii in range(trialN):
+    Resp_e[ii] = np.mean(TC[int(CueTime_FPf[ii]+1):int(CueTime_FPf[ii]+5)])
+    Resp_l[ii] = np.mean(TC[int(CueTime_FPf[ii]+6):int(CueTime_FPf[ii]+40)])
+    Resp_t[ii] = np.mean(TC[int(CueTime_FPf[ii]+81):int(CueTime_FPf[ii]+160)])
     
-# ToDo: Behavior Observables Plotting   
+    Resp_base[ii] = np.mean(TC[int(CueTime_FPf[ii]-5):int(CueTime_FPf[ii])])
     
-# moving average,
-# motivation    
+    #relative to local mean
+    Resp_e_based[ii] = Resp_e[ii] - Resp_base[ii] 
+    Resp_l_based[ii] = Resp_l[ii] - Resp_base[ii] 
+    Resp_t_based[ii] = Resp_t[ii] - Resp_base[ii] 
     
     
-    
-    
-    
-# ToDo: Prepare PandasTable to colate all
+#%%
+plt.figure(figsize=(12, 12))
+plt.subplot(5,1,1)
+
+mask = (Reward_ID==0) & (Action_ID==1)
+plt.scatter(np.arange(len(Action_ID))[mask],np.ones(len(Action_ID[mask]))*0.1, c='red', alpha=0.2) 
+mask = (Reward_ID==1) & (Action_ID==1)
+plt.scatter(np.arange(len(Action_ID))[mask],np.ones(len(Action_ID[mask]))*0, c='blue', alpha=0.5)
+
+mask = (Reward_ID==0) & (Action_ID==2)
+plt.scatter(np.arange(len(Action_ID))[mask],np.ones(len(Action_ID[mask]))*0.9,  c='red', alpha=0.2) 
+mask = (Reward_ID==1) & (Action_ID==2)
+plt.scatter(np.arange(len(Action_ID))[mask],np.ones(len(Action_ID[mask]))*1, c='blue', alpha=0.5)
+
+mask = (Action_ID==0)
+plt.scatter(np.arange(len(Action_ID))[mask],np.ones(len(Action_ID[mask]))*0.5, c='black')
+
+plt.title('Action 0:L, 1:R')
+plt.xlabel('#Trial')
 
 
 
+plt.subplot(5,1,2)
+plt.scatter(np.arange(len(Resp_e))[Reward_ID==0],np.ones(len(CueTime_FPf[Reward_ID==0]))*Resp_e[Reward_ID==0]*100,label='UnRewarded', c='red')   
+plt.scatter(np.arange(len(Resp_e))[Reward_ID==1],np.ones(len(CueTime_FPf[Reward_ID==1]))*Resp_e[Reward_ID==1]*100,label='Rewarded', c='blue')  
+plt.legend()  
+plt.title('EarlyResponse_Rewarded/Unrewarded')
+plt.ylabel('dF/F')
+
+plt.subplot(5,1,3)
+plt.scatter(np.arange(len(Resp_l))[Reward_ID==0],np.ones(len(CueTime_FPf[Reward_ID==0]))*Resp_l[Reward_ID==0]*100,label='UnRewarded', c='red')   
+plt.scatter(np.arange(len(Resp_l))[Reward_ID==1],np.ones(len(CueTime_FPf[Reward_ID==1]))*Resp_l[Reward_ID==1]*100,label='Rewarded', c='blue')  
+plt.legend()  
+plt.title('LateResponse_Rewarded/Unrewarded')
+plt.ylabel('dF/F')
+
+plt.subplot(5,1,4)
+plt.scatter(np.arange(len(Resp_t))[Reward_ID==0],np.ones(len(CueTime_FPf[Reward_ID==0]))*Resp_t[Reward_ID==0]*100,label='UnRewarded', c='red')   
+plt.scatter(np.arange(len(Resp_t))[Reward_ID==1],np.ones(len(CueTime_FPf[Reward_ID==1]))*Resp_t[Reward_ID==1]*100,label='Rewarded', c='blue')  
+plt.legend()  
+plt.title('TailResponse_Rewarded/Unrewarded')
+plt.ylabel('dF/F')
+
+plt.subplot(5,1,5)
+plt.scatter(np.arange(len(Resp_base))[Reward_ID==0],np.ones(len(CueTime_FPf[Reward_ID==0]))*Resp_base[Reward_ID==0]*100,label='UnRewarded', c='red')   
+plt.scatter(np.arange(len(Resp_base))[Reward_ID==1],np.ones(len(CueTime_FPf[Reward_ID==1]))*Resp_base[Reward_ID==1]*100,label='Rewarded', c='blue')  
+plt.legend()  
+plt.title('Baseline_Rewarded/Unrewarded')
+plt.ylabel('dF/F')
+
+
+#plt.figure()
+#plt.scatter(CueTime_FPf[Reward_ID==0]/20,np.ones(len(CueTime_FPf[Reward_ID==0]))*Resp_l[Reward_ID==0]*100,label='UnRewarded')   
+#plt.scatter(CueTime_FPf[Reward_ID==1]/20,np.ones(len(CueTime_FPf[Reward_ID==1]))*Resp_l[Reward_ID==1]*100,label='Rewarded')    
+
+#%% PSTH 
+PSTH_all=PSTHmaker(GCaMP_dF_F*100, CueTime_FPf, 100, 200) #-5sec - +10sec
+    
+#%% Colating Trial Data into pd.dataframe
+
+#Trial assignment based on Barcode ("TTL length=20")
+  
+#  0. BarChar: for behavior modeling alignment
+#  1. Action_ID: #1:L/2:R/0:Ignore
+#  2. Reward_ID: #0:UnRewarded / 1:Rewarded
+#  3. CueTime_FPf: timing of gocue, in photometry frameN
+#  4. ActionTime_FPf: timing of action/choice, in photometry frameN
+#  5-8. Resp_: averaged dF/F per trial; e:early,l:late,t:tail; base:baseline
+#  9. PSTH_all: 
+
+df=pd.DataFrame([BarChar,Action_ID,Reward_ID,CueTime_FPf,ActionTime_FPf,Resp_e,Resp_l,Resp_t,Resp_base,PSTH_all])
+
+df = df.T
+df = df.set_axis(['Barcode', 'Action_ID', 'Reward_ID', 'CueTime_FPf','ActionTime_FPf','Resp_e','Resp_l','Resp_t','Resp_base', 'PSTH'], axis='columns')
 
 
 
