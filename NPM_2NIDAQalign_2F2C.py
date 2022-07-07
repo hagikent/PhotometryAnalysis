@@ -6,13 +6,13 @@ Run after "NPM_1preprocessing"
 To align photometry data and TTLs generated with BPOD, logged with NI+Bonsai 
 
 BPOD TTLs (designed by HH)
-'barcode': start with 0.020,then 0.010 * 1-20
-'go_cue': 0.001,      # Should be the shortest, otherwise will miss some really fast licks
-'choice_L': 0.002,    # Relatively time-sensitive, should be shorter
-'choice_R': 0.003,    # Relatively time-sensitive, should be shorter
-'choice_M': 0.004,    # Relatively time-sensitive, should be shorter
-'reward': 0.03,       # Not very time-sensitive
-'iti_start': 0.04     # Not very time-sensitive
+20/10'barcode': start with 0.020,then 0.010 * 1-20
+1'go_cue': 0.001,      # Should be the shortest, otherwise will miss some really fast licks
+2'choice_L': 0.002,    # Relatively time-sensitive, should be shorter
+3'choice_R': 0.003,    # Relatively time-sensitive, should be shorter
+4'choice_M': 0.004,    # Relatively time-sensitive, should be shorter
+30'reward': 0.03,       # Not very time-sensitive
+40'iti_start': 0.04     # Not very time-sensitive
 
 maxlength = 41 (@1000Hz logging)
 
@@ -32,7 +32,6 @@ import csv
 import glob
 
 #Mac
-
 
 #NMs
 #AnalDir = "/Users/kenta/Library/CloudStorage/OneDrive-AllenInstitute/Data/220409/KH_FB7"
@@ -79,27 +78,28 @@ AnalDir = r"C:\Users\kenta.hagihara\OneDrive - Allen Institute\Data\220614\KH_FB
 #AnalDir = r"C:\Users\kenta.hagihara\OneDrive - Allen Institute\Data\220616\KH_FB14"
 #AnalDir = r"C:\Users\kenta.hagihara\OneDrive - Allen Institute\Data\220609\KH_FB17"
 #AnalDir = r"C:\Users\kenta.hagihara\OneDrive - Allen Institute\Data\220610\KH_FB17"
-AnalDir = r"C:\Users\kenta.hagihara\OneDrive - Allen Institute\Data\220617\KH_FB20"
+#AnalDir = r"C:\Users\kenta.hagihara\OneDrive - Allen Institute\Data\220617\KH_FB20"
 #AnalDir = r"C:\Users\kenta.hagihara\OneDrive - Allen Institute\Data\220601\KH_FB14"
 #AnalDir = r"C:\Users\kenta.hagihara\OneDrive - Allen Institute\Data\220527\KH_FB14"
 #AnalDir = r"C:\Users\kenta.hagihara\OneDrive - Allen Institute\Data\220613\KH_FB22"
 #AnalDir = r"C:\Users\kenta.hagihara\OneDrive - Allen Institute\Data\220621\KH_FB17"
-AnalDir = r"C:\Users\kenta.hagihara\OneDrive - Allen Institute\Data\220622\KH_FB14"
-AnalDir = r"C:\Users\kenta.hagihara\OneDrive - Allen Institute\Data\220622\KH_FB17"
-AnalDir = r"C:\Users\kenta.hagihara\OneDrive - Allen Institute\Data\220623\KH_FB26"
-AnalDir = r"C:\Users\kenta.hagihara\OneDrive - Allen Institute\Data\220623\KH_FB27"
-AnalDir = r"C:\Users\kenta.hagihara\OneDrive - Allen Institute\Data\220624\KH_FB26"
-AnalDir = r"C:\Users\kenta.hagihara\OneDrive - Allen Institute\Data\220624\KH_FB14"
-AnalDir = r"C:\Users\kenta.hagihara\OneDrive - Allen Institute\Data\220625\KH_FB26"
-AnalDir = r"C:\Users\kenta.hagihara\OneDrive - Allen Institute\Data\220625\KH_FB27"
-AnalDir = r"C:\Users\kenta.hagihara\OneDrive - Allen Institute\Data\220626\KH_FB26"
-AnalDir = r"C:\Users\kenta.hagihara\OneDrive - Allen Institute\Data\220626\KH_FB27"
-
+#AnalDir = r"C:\Users\kenta.hagihara\OneDrive - Allen Institute\Data\220622\KH_FB14"
+#AnalDir = r"C:\Users\kenta.hagihara\OneDrive - Allen Institute\Data\220622\KH_FB17"
+#AnalDir = r"C:\Users\kenta.hagihara\OneDrive - Allen Institute\Data\220623\KH_FB26"
+#AnalDir = r"C:\Users\kenta.hagihara\OneDrive - Allen Institute\Data\220623\KH_FB27"
+#AnalDir = r"C:\Users\kenta.hagihara\OneDrive - Allen Institute\Data\220624\KH_FB26"
+#AnalDir = r"C:\Users\kenta.hagihara\OneDrive - Allen Institute\Data\220624\KH_FB14"
+#AnalDir = r"C:\Users\kenta.hagihara\OneDrive - Allen Institute\Data\220625\KH_FB26"
+#AnalDir = r"C:\Users\kenta.hagihara\OneDrive - Allen Institute\Data\220625\KH_FB27"
+#AnalDir = r"C:\Users\kenta.hagihara\OneDrive - Allen Institute\Data\220626\KH_FB26"
+#AnalDir = r"C:\Users\kenta.hagihara\OneDrive - Allen Institute\Data\220626\KH_FB27"
+#AnalDir = r"C:\Users\kenta.hagihara\OneDrive - Allen Institute\Data\220627\KH_FB17_2"
+#AnalDir = r"C:\Users\kenta.hagihara\OneDrive - Allen Institute\Data\220627\KH_FB27"
 FlagNoRawLick = 0
 
 #GCaMP_dF_F = np.load(glob.glob(AnalDir + os.sep + "GCaMP_dF_F.npy")[0])
-GCaMP_dF_F = np.load(glob.glob(AnalDir + os.sep + "R2_dF_F.npy")[0])
-R_dF_F = np.load(glob.glob(AnalDir + os.sep + "G2_dF_F.npy")[0])
+GCaMP_dF_F = np.load(glob.glob(AnalDir + os.sep + "G2_dF_F.npy")[0])
+R_dF_F = np.load(glob.glob(AnalDir + os.sep + "R2_dF_F.npy")[0])
 
 TTLsignal = np.fromfile(glob.glob(AnalDir + os.sep + "TTL_20*")[0])
 file_TS = glob.glob(AnalDir + os.sep + "TimeStamp*")[0]
@@ -274,23 +274,21 @@ BarcodeBin = np.zeros((len(BarcodeP),20))
 
 for ii in range(len(BarcodeP)):
     for jj in range(20):
-        BarcodeBin[ii,jj] = TTLsignal1[int(BarcodeP[ii])+30+20*jj+5]
+        BarcodeBin[ii,jj] = TTLsignal1[int(BarcodeP[ii])+30+20*jj+5] # checking the middle of 10ms windows
 
-#%%
-##To match behavior... To Check
-bitHighPositionThis=[]
+BarChar=[]
 
 for ii in range(len(BarcodeP)):
-    bitHighPositionThis[ii] =  np.where(BarcodeBin[ii]==1)
+    temp=BarcodeBin[ii].astype(int)
+    temp2=''
+    
+    for jj in range(20):
+        temp2 = temp2 + str(temp[jj])
         
-        
-        
-        
-        
-        
-        
-        
-        
+    BarChar.append(temp2)
+    
+    del temp, temp2
+    
 #%% ReactionTime
 ReTiRaw = []
 for ii in range(len(TTL_l)-1):
@@ -319,7 +317,7 @@ time_seconds = np.arange(len(GCaMP_dF_F)) /20
 
 plt.figure(figsize=(20, 6))
 plt.plot(time_seconds, GCaMP_dF_F*100, 'g')
-plt.plot(time_seconds, R_dF_F*100, 'magenta')        ############3R
+#plt.plot(time_seconds, R_dF_F*100, 'magenta')        ############3R
 plt.plot(time_seconds, np.zeros(len(time_seconds)),'--k')
 plt.xlabel('Time (seconds)')
 plt.ylabel('dF/F (%)')
@@ -536,6 +534,90 @@ plt.colorbar(shrink=0.5)
 plt.axvline(x=100,color='white',linestyle='--')
 plt.title("CueTriggered_`Ignored")
 #plt.savefig(AnalDir + os.sep + "ColorMap_CueRew.png")
+
+
+#%% Response Table Based-on Barcode
+
+###
+#Trial assignment based on "TTL length=20
+#Values to be collected here  
+#  1. Barchar: for behavior modeling alignment
+#  2. Action_ID: #1:L/2:R/0:Ignore
+#  3. Reward_ID: #0:UnRewarded / 1:Rewarded
+#  4. 
+#
+###
+
+temp=[1,2,3,20,30,40]
+non10=[]
+for ii in range(len(TTL_l_align)):
+    if TTL_l_align[ii] in temp:
+        non10.append(ii)
+
+TTL_l_align_T = TTL_l_align[non10] #subselecting 1,2,3,20,30,40
+TTL_p_align_T = TTL_p_align[non10]
+TTL_p_T = TTL_p_align[non10] #NI time
+
+
+#Table making Main Loop 
+trialN=0
+Action_ID = np.empty(len(TTL_l_align_T[TTL_l_align_T==20])) #1:L/2:R/0:Ignore
+Reward_ID = np.empty(len(TTL_l_align_T[TTL_l_align_T==20]))  #0:UnRewarded / 1:Rewarded
+CueTime_Bonsai = np.empty(len(TTL_l_align_T[TTL_l_align_T==20])) 
+CueTime_NI = np.empty(len(TTL_l_align_T[TTL_l_align_T==20])) 
+ActionTime_Bonsai = np.empty(len(TTL_l_align_T[TTL_l_align_T==20])) 
+ActionTime_NI = np.empty(len(TTL_l_align_T[TTL_l_align_T==20])) 
+
+for ii in range(len(TTL_l_align_T)):
+    if TTL_l_align_T[ii]==20:
+        if TTL_l_align_T[ii+2]==40:
+            Action_ID[trialN] = 0
+            Reward_ID[trialN] = 0
+        elif TTL_l_align_T[ii+2]==2:
+            Action_ID[trialN] = 1            
+            if TTL_l_align_T[ii+3]==30:
+                Reward_ID[trialN] = 1
+            elif TTL_l_align_T[ii+3]==40:
+                Reward_ID[trialN] = 0
+        elif TTL_l_align_T[ii+2]==3:
+            Action_ID[trialN] = 2            
+            if TTL_l_align_T[ii+3]==30:
+                Reward_ID[trialN] = 1
+            elif TTL_l_align_T[ii+3]==40:
+                Reward_ID[trialN] = 0
+        
+        ##
+        CueTime_Bonsai[trialN] = TTL_p_align_T[ii+1]
+        CueTime_NI[trialN] = TTL_p_T[ii+1]
+        ActionTime_Bonsai[trialN] = TTL_p_align_T[ii+2]
+        ActionTime_NI[trialN] = TTL_p_T[ii+2]        
+        
+        trialN = trialN+1
+### Loop end     
+        
+ActionTime_Bonsai[Action_ID==0] = None
+ActionTime_NI[Action_ID==0] = None
+
+
+
+# ToDo: dF/F integral
+    
+# ToDo: Behavior Observables Plotting   
+    
+# moving average,
+# motivation    
+    
+    
+    
+    
+    
+# ToDo: Prepare PandasTable to colate all
+
+
+
+
+
+
 
 
     
