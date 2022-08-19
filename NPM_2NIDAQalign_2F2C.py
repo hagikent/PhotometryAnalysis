@@ -38,8 +38,22 @@ import glob
 #AnalDir = "/Users/kenta/Library/CloudStorage/OneDrive-AllenInstitute/Data/220409/KH_FB7"
 
 #Win
+AnalDir = r""
 
-AnalDir = r"C:\Users\kenta.hagihara\OneDrive - Allen Institute\Data\220711\KH_FB26"
+
+#______220715vis
+#DA2m
+#AnalDir = r"C:\Users\kenta.hagihara\OneDrive - Allen Institute\Data\220524\KH_FB8"
+#rDA3m
+#AnalDir = r"C:\Users\kenta.hagihara\OneDrive - Allen Institute\Data\220711\KH_FB26"
+#NE2h
+#AnalDir = r"C:\Users\kenta.hagihara\OneDrive - Allen Institute\Data\220601\KH_FB14"
+#5HT3.0
+#AnalDir = r"C:\Users\kenta.hagihara\OneDrive - Allen Institute\Data\220610\KH_FB17"
+#rACh1.7
+#AnalDir = r"C:\Users\kenta.hagihara\OneDrive - Allen Institute\Data\220714\KH_FB19"
+
+AnalDir = r"C:\Users\kenta.hagihara\OneDrive - Allen Institute\Data\FIP\220817\KH_FB32"
 
 FlagNoRawLick = 0
 
@@ -55,26 +69,31 @@ GCaMP_dF_F = np.load(glob.glob(AnalDir + os.sep + "G2_dF_F.npy")[0])
 R_dF_F = np.load(glob.glob(AnalDir + os.sep + "R2_dF_F.npy")[0])
 
 TTLsignal = np.fromfile(glob.glob(AnalDir + os.sep + "TTL_20*")[0])
-file_TS = glob.glob(AnalDir + os.sep + "TimeStamp*")[0]
 file_TTLTS = glob.glob(AnalDir + os.sep + "TTL_TS*")[0]
 
 #%%
-with open(file_TS) as f:
-    reader = csv.reader(f)
-    datatemp = np.array([row for row in reader])
-    PMts = datatemp[0:,:].astype(np.float32)
+if glob.glob(AnalDir + os.sep + "TimeStamp_*") != []:   #data from NPM
+    file_TS = glob.glob(AnalDir + os.sep + "TimeStamp_*")[0]
+    
+    with open(file_TS) as f:
+        reader = csv.reader(f)
+        datatemp = np.array([row for row in reader])
+        PMts = datatemp[0:,:].astype(np.float32)
+    
+    PMts2 = PMts[0:len(PMts):int(np.round(len(PMts)/len(Traces))),:] #length of this must be the same as that of GCaMP_dF_F
+    
+else: # data from FIP
+    PMts = np.load(glob.glob(AnalDir + os.sep + "PMts.npy")[0])
+    PMts2 = np.vstack((PMts,np.arange(len(PMts)))).T
+    
 
+# Timestamp for TTL    
 with open(file_TTLTS) as f:
     reader = csv.reader(f)
     datatemp = np.array([row for row in reader])
     TTLts = datatemp[0:,:].astype(np.float32)
-
-print('number of excitation LEDs: '+ str(np.round(len(PMts)/len(Traces))))
-
-
-PMts2 = PMts[0:len(PMts):int(np.round(len(PMts)/len(Traces))),:] #length of this must be the same as that of GCaMP_dF_F
-
-
+    
+    
 #%%Sorting NIDAQ-AI channels
 if (len(TTLsignal)/1000) / len(TTLts) == 1:
     #plt.figure()
@@ -404,7 +423,7 @@ for ii in range(np.size(Traces,1)):
     plt.title("ChoiceTriggered_UnRewarded")
     plt.savefig(AnalDir + os.sep + "Fig_PSTH_Choice" + str(ii) + ".png")
 
-    #%%  Cue Triggered Plotting
+    #%  Cue Triggered Plotting
     fig=plt.figure(figsize=(12, 8))
     fig.canvas.set_window_title('Cue_Triggered  ROI#' + str(ii))
     plt.subplot(2,3,1)
@@ -468,7 +487,7 @@ for ii in range(np.size(Traces,1)):
 
     plt.savefig(AnalDir + os.sep + "Fig_PSTH_Cue" + str(ii) + ".png")
 
-    #%% Ignored
+    #% Ignored
     fig=plt.figure(figsize=(8, 4))
     fig.canvas.set_window_title('Ignored  ROI#' + str(ii))
     plt.subplot(1,2,1)
@@ -533,7 +552,7 @@ CueTime_NI = np.empty(len(TTL_l_align_T[TTL_l_align_T==20]))
 ActionTime_FPf = np.empty(len(TTL_l_align_T[TTL_l_align_T==20])) 
 ActionTime_NI = np.empty(len(TTL_l_align_T[TTL_l_align_T==20])) 
 
-for ii in range(len(TTL_l_align_T)-2):
+for ii in range(len(TTL_l_align_T)-3):
     if TTL_l_align_T[ii]==20:
         if TTL_l_align_T[ii+2]==40:
             Action_ID[trialN] = 0

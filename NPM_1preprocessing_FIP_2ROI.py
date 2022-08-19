@@ -32,12 +32,12 @@ from scipy.optimize import curve_fit, minimize
 import glob
 
 #%% import 
-plt.close('all')
+
 #Mac
 #AnalDir = "/Users/kenta/Library/CloudStorage/OneDrive-AllenInstitute/Data/220421/KH_FB10"
 
 #Win
-AnalDir = r"C:\Users\kenta.hagihara\OneDrive - Allen Institute\Data\220817\KH_FB33"
+AnalDir = r"C:\Users\kenta.hagihara\OneDrive - Allen Institute\Data\FIP\220816\KH_FB31"
 
 nFibers = 2
 nColor = 3
@@ -49,26 +49,26 @@ b_percentile = 0.70 #To calculare F0, median of bottom x%
 #BiExpFitIni = [1,1e-3,5,1e-3,5]
 BiExpFitIni = [1,1e-3,1,1e-3,1]  #currentlu not used
 
-file1  = glob.glob(AnalDir + os.sep + "L415*")[0]
-file2 = glob.glob(AnalDir + os.sep + "L470*")[0]
-file3 = glob.glob(AnalDir + os.sep + "L560*")[0]
+file1  = glob.glob(AnalDir + os.sep + "FIP_DataIso*")[0]
+file2 = glob.glob(AnalDir + os.sep + "FIP_DataG*")[0]
+file3 = glob.glob(AnalDir + os.sep + "FIP_DataR*")[0]
 
 with open(file1) as f:
     reader = csv.reader(f)
     datatemp = np.array([row for row in reader])
-    data1 = datatemp[1:,:].astype(np.float32)
+    data1 = datatemp[0:,:].astype(np.float32)
     #del datatemp
     
 with open(file2) as f:
     reader = csv.reader(f)
     datatemp = np.array([row for row in reader])
-    data2 = datatemp[1:,:].astype(np.float32)
+    data2 = datatemp[0:,:].astype(np.float32)
     #del datatemp
     
 with open(file3) as f:
     reader = csv.reader(f)
     datatemp = np.array([row for row in reader])
-    data3 = datatemp[1:,:].astype(np.float32)
+    data3 = datatemp[0:,:].astype(np.float32)
     #del datatemp
         
 # in case acquisition halted accidentally
@@ -76,23 +76,17 @@ Length = np.amin([len(data1),len(data2),len(data3)])
 data1 = data1[0:Length] 
 data2 = data2[0:Length]
 data3 = data3[0:Length]
+
+#%% TimeStamp,ROI0,ROI1,ROI2...
+PMts= data2[:,0]
+
+Data_Fiber1iso = data1[:,1]
+Data_Fiber1G = data2[:,1]
+Data_Fiber1R = data3[:,1]
  
-#%% Data sort # 1,2:Time-Frame info; ROI0:3;ROI1:4,ROI2:5,ROI3:6;...
-#Data_Fiber1iso = data1[:,3]
-#Data_Fiber1G = data2[:,3]
-#Data_Fiber1R = data3[:,5]
- 
-#Data_Fiber2iso = data1[:,4]
-#Data_Fiber2G = data2[:,4]
-#Data_Fiber2R = data3[:,6]
-#%% from 220609-, ROI0:8;ROI1:9,ROI2:10,ROI3:11;
-Data_Fiber1iso = data1[:,8]
-Data_Fiber1G = data2[:,8]
-Data_Fiber1R = data3[:,10]
- 
-Data_Fiber2iso = data1[:,9]
-Data_Fiber2G = data2[:,9]
-Data_Fiber2R = data3[:,11]
+Data_Fiber2iso = data1[:,2]
+Data_Fiber2G = data2[:,2]
+Data_Fiber2R = data3[:,2]
 
 
 #%% From here to be multiplexed
@@ -554,7 +548,7 @@ np.save(AnalDir + os.sep + "R2_dF_F", R2_dF_F)
 np.save(AnalDir + os.sep + "Ctrl1_dF_F", Ctrl1_dF_F)
 np.save(AnalDir + os.sep + "Ctrl2_dF_F", Ctrl2_dF_F)
 
-
+np.save(AnalDir + os.sep + "PMts", PMts)
 
 
 #%%
@@ -606,16 +600,11 @@ plt.plot(time_seconds, R2norm / np.max(R2norm), 'red')
 
 #%%
 plt.figure()
-plt.subplot(2,1,1)
-plt.plot(time_seconds, R1_dF_F*100, 'blue')
+plt.plot(time_seconds, G1_dF_F*100, 'green')
 plt.plot(time_seconds, R2_dF_F*100, 'red')
 
-plt.subplot(2,1,2)
-plt.plot(time_seconds, G1_dF_F*100, 'blue')
-plt.plot(time_seconds, G2_dF_F*100, 'red')
+np.corrcoef(G1_dF_F, R2_dF_F)
 
-np.corrcoef(G1_dF_F, G2_dF_F)
-np.corrcoef(R1_dF_F, R2_dF_F)
 
 
 
