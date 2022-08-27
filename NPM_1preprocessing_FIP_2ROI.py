@@ -37,7 +37,7 @@ import glob
 #AnalDir = "/Users/kenta/Library/CloudStorage/OneDrive-AllenInstitute/Data/220421/KH_FB10"
 
 #Win
-AnalDir = r"C:\Users\kenta.hagihara\OneDrive - Allen Institute\Data\FIP\220816\KH_FB31"
+AnalDir = r"C:\Users\kenta.hagihara\OneDrive - Allen Institute\Data\FIP\220818\KH_FB32"
 
 nFibers = 2
 nColor = 3

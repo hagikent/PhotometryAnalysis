@@ -51,9 +51,9 @@ AnalDir = r""
 #5HT3.0
 #AnalDir = r"C:\Users\kenta.hagihara\OneDrive - Allen Institute\Data\220610\KH_FB17"
 #rACh1.7
-#AnalDir = r"C:\Users\kenta.hagihara\OneDrive - Allen Institute\Data\220714\KH_FB19"
 
-AnalDir = r"C:\Users\kenta.hagihara\OneDrive - Allen Institute\Data\FIP\220817\KH_FB32"
+#AnalDir = r"C:\Users\kenta.hagihara\OneDrive - Allen Institute\Data\220714\KH_FB19"
+AnalDir = r"C:\Users\kenta.hagihara\OneDrive - Allen Institute\Data\FIP\220808\KH_FB32"
 
 FlagNoRawLick = 0
 
@@ -545,12 +545,12 @@ TTL_p_T = TTL_p_align[non10] #NI time
 
 #Table making Main Loop 
 trialN=0
-Action_ID = np.empty(len(TTL_l_align_T[TTL_l_align_T==20])) #1:L/2:R/0:Ignore
-Reward_ID = np.empty(len(TTL_l_align_T[TTL_l_align_T==20]))  #0:UnRewarded / 1:Rewarded
-CueTime_FPf = np.empty(len(TTL_l_align_T[TTL_l_align_T==20])) 
-CueTime_NI = np.empty(len(TTL_l_align_T[TTL_l_align_T==20])) 
-ActionTime_FPf = np.empty(len(TTL_l_align_T[TTL_l_align_T==20])) 
-ActionTime_NI = np.empty(len(TTL_l_align_T[TTL_l_align_T==20])) 
+Action_ID = np.zeros(len(TTL_l_align_T[TTL_l_align_T==20])) #1:L/2:R/0:Ignore
+Reward_ID = np.zeros(len(TTL_l_align_T[TTL_l_align_T==20]))  #0:UnRewarded / 1:Rewarded
+CueTime_FPf = np.zeros(len(TTL_l_align_T[TTL_l_align_T==20])) 
+CueTime_NI = np.zeros(len(TTL_l_align_T[TTL_l_align_T==20])) 
+ActionTime_FPf = np.zeros(len(TTL_l_align_T[TTL_l_align_T==20])) 
+ActionTime_NI = np.zeros(len(TTL_l_align_T[TTL_l_align_T==20])) 
 
 for ii in range(len(TTL_l_align_T)-3):
     if TTL_l_align_T[ii]==20:
@@ -583,9 +583,9 @@ ActionTime_FPf[Action_ID==0] = None
 ActionTime_NI[Action_ID==0] = None
 
 # ToDo: dF/F integral
-Resp_e = np.empty((len(TTL_l_align_T[TTL_l_align_T==20]),np.size(Traces,1))) # early:0-250ms Windows To Be Optimized
-Resp_l = np.empty((len(TTL_l_align_T[TTL_l_align_T==20]),np.size(Traces,1))) # late:250-2000ms
-Resp_t = np.empty((len(TTL_l_align_T[TTL_l_align_T==20]),np.size(Traces,1))) # tail:4000-8000ms
+Resp_e = np.empty((len(TTL_l_align_T[TTL_l_align_T==20]),np.size(Traces,1))) # early:cue onset to action
+Resp_l = np.empty((len(TTL_l_align_T[TTL_l_align_T==20]),np.size(Traces,1))) # late:action to action+2sec
+Resp_t = np.empty((len(TTL_l_align_T[TTL_l_align_T==20]),np.size(Traces,1))) # tail:next cue - 2sec to next trial 
 Resp_base = np.empty((len(TTL_l_align_T[TTL_l_align_T==20]),np.size(Traces,1))) # base:-250-0ms
 Resp_e_based = np.empty((len(TTL_l_align_T[TTL_l_align_T==20]),np.size(Traces,1))) # 
 Resp_l_based = np.empty((len(TTL_l_align_T[TTL_l_align_T==20]),np.size(Traces,1))) # 
@@ -593,17 +593,23 @@ Resp_t_based = np.empty((len(TTL_l_align_T[TTL_l_align_T==20]),np.size(Traces,1)
 
 TC=Traces # Time Course to calculate responses
 
-for ii in range(trialN):
-    Resp_e[ii,:] = np.mean(TC[int(CueTime_FPf[ii]+1):int(CueTime_FPf[ii]+5),:],axis=0)
-    Resp_l[ii,:] = np.mean(TC[int(CueTime_FPf[ii]+6):int(CueTime_FPf[ii]+40),:],axis=0)
-    Resp_t[ii,:] = np.mean(TC[int(CueTime_FPf[ii]+81):int(CueTime_FPf[ii]+160),:],axis=0)
+for ii in range(trialN-1): #ignore the last trial
+    if ~np.isnan(ActionTime_FPf[ii]): #non-ignored trials only
+        Resp_e[ii,:] = np.mean(TC[int(CueTime_FPf[ii]+1):int(ActionTime_FPf[ii]),:],axis=0)
+        Resp_l[ii,:] = np.mean(TC[int(ActionTime_FPf[ii]):int(ActionTime_FPf[ii]+40),:],axis=0)
+        Resp_t[ii,:] = np.mean(TC[int(CueTime_FPf[ii+1]-40):int(CueTime_FPf[ii+1]),:],axis=0)
+    else:
+        Resp_e[ii,:] = None
+        Resp_l[ii,:] = None
+        Resp_t[ii,:] = None
     
-    Resp_base[ii,:] = np.mean(TC[int(CueTime_FPf[ii]-5):int(CueTime_FPf[ii]),:],axis=0)
+    Resp_base[ii,:] = np.mean(TC[int(CueTime_FPf[ii]-10):int(CueTime_FPf[ii]),:],axis=0)
     
+    if ~np.isnan(ActionTime_FPf[ii]): #non-ignored trials only
     #relative to local mean
-    Resp_e_based[ii,:] = Resp_e[ii,:] - Resp_base[ii,:] 
-    Resp_l_based[ii,:] = Resp_l[ii,:] - Resp_base[ii,:] 
-    Resp_t_based[ii,:] = Resp_t[ii,:] - Resp_base[ii,:] 
+        Resp_e_based[ii,:] = Resp_e[ii,:] - Resp_base[ii,:] 
+        Resp_l_based[ii,:] = Resp_l[ii,:] - Resp_base[ii,:] 
+        Resp_t_based[ii,:] = Resp_t[ii,:] - Resp_base[ii,:] 
     
     
 #%%

@@ -37,7 +37,7 @@ plt.close('all')
 #AnalDir = "/Users/kenta/Library/CloudStorage/OneDrive-AllenInstitute/Data/220421/KH_FB10"
 
 #Win
-AnalDir = r"C:\Users\kenta.hagihara\OneDrive - Allen Institute\Data\220817\KH_FB33"
+AnalDir = r"C:\Users\kenta.hagihara\OneDrive - Allen Institute\Data\220825\KH_FB40"
 
 nFibers = 2
 nColor = 3
@@ -574,7 +574,7 @@ plt.title('R:')
 
 
 #%%
-kernelSize=7
+kernelSize=51
 
 plt.figure()
 plt.subplot(5,1,1)
@@ -617,6 +617,6 @@ plt.plot(time_seconds, G2_dF_F*100, 'red')
 np.corrcoef(G1_dF_F, G2_dF_F)
 np.corrcoef(R1_dF_F, R2_dF_F)
 
-
+G1norm
 
 
