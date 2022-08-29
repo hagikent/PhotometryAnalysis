@@ -53,7 +53,7 @@ AnalDir = r""
 #rACh1.7
 
 #AnalDir = r"C:\Users\kenta.hagihara\OneDrive - Allen Institute\Data\220714\KH_FB19"
-AnalDir = r"C:\Users\kenta.hagihara\OneDrive - Allen Institute\Data\220726\KH_FB26"
+AnalDir = r"C:\Users\kenta.hagihara\OneDrive - Allen Institute\Data\FIP\220816\KH_FB37"
 
 FlagNoRawLick = 0
 
@@ -611,10 +611,10 @@ for ii in range(trialN-1): #ignore the last trial
         Resp_l_based[ii,:] = Resp_l[ii,:] - Resp_base[ii,:] 
         Resp_t_based[ii,:] = Resp_t[ii,:] - Resp_base[ii,:] 
         
-Resp_e[trialN-1,:] = None
-Resp_l[trialN-1,:] = None
-Resp_t[trialN-1,:] = None
-Resp_base[trialN-1,:] = None
+Resp_e[len(Resp_e)-2:len(Resp_e)-1,:] = None
+Resp_l[len(Resp_e)-2:len(Resp_l)-1,:] = None
+Resp_t[len(Resp_e)-2:len(Resp_t)-1,:] = None
+Resp_base[len(Resp_e)-2:len(Resp_base)-1,:] = None
     
     
 #%%

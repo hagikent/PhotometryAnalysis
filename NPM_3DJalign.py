@@ -2,16 +2,23 @@
 """
 Created on Wed Jul 13 08:39:59 2022
 
-@author: kenta.hagihara
+Run after "NPM_2NIDAQalign"
+To align pre-processed/trial-organised photometry data to model-fitting done in DataJoint 
+
+Dependency:UtilFunctions_KH (_get_independent_variableKH; align_phys_to_behav_trials)
+
+@author: Kenta M. Hagihara @SvobodaLab
 """
 
-#DataJoint Snippets
 
+import json
+json_open = open('dj_local_conf.json', 'r') 
+config = json.load(json_open)
 
 import datajoint as dj
-dj.config['database.host'] = "datajoint.mesoscale-activity-map.org"
-dj.config['database.user'] = ""
-dj.config['database.password'] = ""
+dj.config['database.host'] = config["database.host"]
+dj.config['database.user'] = config ["database.user"]
+dj.config['database.password'] = config["database.password"]
 dj.conn().connect()
 
 #%%
@@ -31,7 +38,6 @@ from UtilFunctions_KH import _get_independent_variableKH, align_phys_to_behav_tr
 
 AnalDir = r"C:\Users\kenta.hagihara\OneDrive - Allen Institute\Data\FIP\220808\KH_FB32"
 sess_key = {'subject_id': 632105, 'session': 16}
-
 df = pd.read_pickle(AnalDir + os.sep + 'DataFrame.pkl')
 
 #%% Model List (ID + details)
