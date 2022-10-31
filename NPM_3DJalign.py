@@ -36,9 +36,12 @@ from UtilFunctions_KH import _get_independent_variableKH, align_phys_to_behav_tr
 
 
 
-AnalDir = r"C:\Users\kenta.hagihara\OneDrive - Allen Institute\Data\FIP\220808\KH_FB32"
-sess_key = {'subject_id': 632105, 'session': 16}
+#AnalDir = r"C:\Users\kenta.hagihara\OneDrive - Allen Institute\Data\FIP\220808\KH_FB32"
+AnalDir = r"C:\Users\kenta.hagihara\OneDrive - Allen Institute\Data\220524\KH_FB8"
+#sess_key = {'subject_id': 632105, 'session': 16}
+sess_key = {'subject_id': 619199, 'session': 29}
 df = pd.read_pickle(AnalDir + os.sep + 'DataFrame.pkl')
+
 
 #%% Model List (ID + details)
 foraging_model.Model()
@@ -66,10 +69,12 @@ plt.title('total_action_value')
 plt.subplot(6,1,5)
 plt.plot(LatVars['rpe'],color='black')
 plt.title('RewardPredictionError')
+plt.tight_layout()
 
 ax = plt.subplot(6,1,1)
 plot_session_fitted_choice(sess_key, specified_model_ids=16, ax=ax, remove_ignored=False)
 
+plt.tight_layout()
 
 #%% Trial Align
 
@@ -115,7 +120,7 @@ plt.title('RewardPredictionError')
 temp = df_aligned['Resp_l']
 Y_this=[]
 for item in temp:
-    Y_this = np.append(Y_this, item[3])
+    Y_this = np.append(Y_this, item[traceN])
 
 plt.subplot(6,1,6)
 plt.plot(Y_this,color='maroon')
@@ -129,7 +134,7 @@ plot_session_fitted_choice(sess_key, specified_model_ids=16, ax=ax, remove_ignor
 temp = df_aligned['Resp_l']
 Y_this=[]
 for item in temp:
-    Y_this = np.append(Y_this, item[3])
+    Y_this = np.append(Y_this, item[traceN])
 
 plt.figure()
 plt.scatter(LatVars_aligned['rpe'],Y_this)
@@ -143,9 +148,13 @@ plt.figure()
 temp = df_aligned['Resp_l']
 Y_this=[]
 for item in temp:
-    Y_this = np.append(Y_this, item[3])
+    Y_this = np.append(Y_this, item[traceN])
 
 plt.scatter(LatVars_aligned['rpe'],Y_this)
+plt.plot(np.arange(-1,1,0.05), np.zeros(len(np.arange(-1,1,0.05))),'--k')   
+plt.plot(np.zeros(len(np.arange(-0.02,0.1,0.05))),np.arange(-0.02,0.1,0.05),'--k')  
+
+
 plt.xlabel('RPE')
 plt.ylabel('Reward_response')
 
@@ -157,7 +166,7 @@ plt.figure()
 temp = df_aligned['Resp_e']
 Y_this=[]
 for item in temp:
-    Y_this = np.append(Y_this, item[3])
+    Y_this = np.append(Y_this, item[traceN])
 
 plt.subplot(1,3,1)
 plt.scatter(LatVars_aligned['total_action_value'],Y_this)
@@ -168,7 +177,7 @@ plt.ylabel('Cue_response')
 temp = df_aligned['Resp_l']
 Y_this=[]
 for item in temp:
-    Y_this = np.append(Y_this, item[3])
+    Y_this = np.append(Y_this, item[traceN])
 
 plt.subplot(1,3,2)
 plt.scatter(LatVars_aligned['total_action_value'],Y_this)
@@ -179,7 +188,7 @@ plt.ylabel('Reward_response')
 temp = df_aligned['Resp_t']
 Y_this=[]
 for item in temp:
-    Y_this = np.append(Y_this, item[3])
+    Y_this = np.append(Y_this, item[traceN])
 
 plt.subplot(1,3,3)
 plt.scatter(LatVars_aligned['total_action_value'],Y_this)

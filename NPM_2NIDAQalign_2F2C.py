@@ -19,7 +19,6 @@ maxlength = 41 (@1000Hz logging)
 @author: Kenta M. Hagihara @SvobodaLab
 
 """
-
 #plt.close('all')
 
 # clear all
@@ -40,20 +39,6 @@ import glob
 #Win
 AnalDir = r""
 
-
-#______220715vis
-#DA2m
-#AnalDir = r"C:\Users\kenta.hagihara\OneDrive - Allen Institute\Data\220524\KH_FB8"
-#rDA3m
-#AnalDir = r"C:\Users\kenta.hagihara\OneDrive - Allen Institute\Data\220711\KH_FB26"
-#NE2h
-#AnalDir = r"C:\Users\kenta.hagihara\OneDrive - Allen Institute\Data\220601\KH_FB14"
-#5HT3.0
-#AnalDir = r"C:\Users\kenta.hagihara\OneDrive - Allen Institute\Data\220610\KH_FB17"
-#rACh1.7
-
-#AnalDir = r"C:\Users\kenta.hagihara\OneDrive - Allen Institute\Data\220714\KH_FB19"
-AnalDir = r"C:\Users\kenta.hagihara\OneDrive - Allen Institute\Data\FIP\220816\KH_FB37"
 
 FlagNoRawLick = 0
 
@@ -287,7 +272,7 @@ plt.hist(ReTi)
 #%% Ca, Behavior Overview
 time_seconds = np.arange(len(Traces)) /20
 
-## ToDo Multiplex for multiple channels!!!
+##
 
 for ii in range(np.size(Traces,1)):
     plt.figure(figsize=(20, 6))
@@ -310,6 +295,36 @@ for ii in range(np.size(Traces,1)):
     plt.legend()  
     plt.savefig(AnalDir + os.sep + "Fig_RawOverview_" + str(ii) + ".png")
     
+
+
+#%% Multiplex 
+
+colorT=[[0, 0.6, 0],[1, 0, 1, 0.8],[0, 0, 0.8, 0.7],[1, 0.5, 0, 0.6]]
+
+
+plt.figure(figsize=(20, 6))
+    
+for ii in range(np.size(Traces,1)):
+    plt.plot(time_seconds, Traces[:,ii]*100, color = colorT[ii], label= 'ROI:'+ str(ii))    
+    
+    
+plt.plot(time_seconds, np.zeros(len(time_seconds)),'--k')   
+plt.xlabel('Time (seconds)')   
+plt.ylabel('dF/F (%)')   
+plt.title('dF/F summary')  
+plt.grid(True)
+    
+plt.scatter(TTL_p_align[TTL_l_align == 1]/20,np.ones(len(TTL_p_align[TTL_l_align == 1]))*30,label='go cue')  
+plt.scatter(TTL_p_align[TTL_l_align == 2]/20,np.ones(len(TTL_p_align[TTL_l_align == 2]))*28,label='Choice L')  
+plt.scatter(TTL_p_align[TTL_l_align == 3]/20,np.ones(len(TTL_p_align[TTL_l_align == 3]))*26,label='Choice R')  
+plt.scatter(TTL_p_align[TTL_l_align == 30]/20,np.ones(len(TTL_p_align[TTL_l_align == 30]))*24,label='Reward')  
+    
+if 'TTL3_p' and 'TTL2_p' in locals():  
+    plt.scatter(TTL2_p_align/20,np.ones(len(TTL2_p_align))*20,label='Lick L (raw)')  
+    plt.scatter(TTL3_p_align/20,np.ones(len(TTL3_p_align))*18,label='Lick R (raw)')  
+    
+plt.legend()  
+plt.savefig(AnalDir + os.sep + "Fig_RawOverview.png")
 #%% PSTH functions
 def PSTHmaker(TC, Stims, preW, postW):
     
@@ -513,6 +528,91 @@ for ii in range(np.size(Traces,1)):
 
 ### end of plotting loop
 
+#%% Early Middle Late plotting loop
+
+for ii in range(4):
+    Trace_this = Traces[:,ii]
+    
+    if len(Rewarded) > 50:
+        Rewarded_e = Rewarded[0:50]
+        Rewarded_m = Rewarded[round(len(Rewarded)/2):round(len(Rewarded)/2)+50]
+        Rewarded_l = Rewarded[-1-50:-1]
+
+        PSTH_Rewarded_e = PSTHmaker(Trace_this*100, TTL_p_align[Rewarded_e.astype(int)], 100, 200)
+        PSTH_Rewarded_m = PSTHmaker(Trace_this*100, TTL_p_align[Rewarded_m.astype(int)], 100, 200)
+        PSTH_Rewarded_l = PSTHmaker(Trace_this*100, TTL_p_align[Rewarded_l.astype(int)], 100, 200)
+        
+        UnRewarded_e = UnRewarded[0:50]
+        UnRewarded_m = UnRewarded[round(len(UnRewarded)/2):round(len(UnRewarded)/2)+50]
+        UnRewarded_l = UnRewarded[-1-50:-1]
+
+        PSTH_UnRewarded_e = PSTHmaker(Trace_this*100, TTL_p_align[UnRewarded_e.astype(int)], 100, 200)
+        PSTH_UnRewarded_m = PSTHmaker(Trace_this*100, TTL_p_align[UnRewarded_m.astype(int)], 100, 200)
+        PSTH_UnRewarded_l = PSTHmaker(Trace_this*100, TTL_p_align[UnRewarded_l.astype(int)], 100, 200)
+
+    fig=plt.figure(figsize=(12, 8))
+    fig.canvas.set_window_title('Choice_Triggered E/M/L 50-trials  ROI#' + str(ii))
+    plt.subplot(1,3,1)
+    PSTHplot(PSTH_Rewarded_e, "b", "darkblue", "RewardedTrials")
+    PSTHplot(PSTH_UnRewarded_e, "r", "darkred", "UnRewardedTrials")
+    ymax = np.max([np.max(np.mean(PSTH_Rewarded_e,axis=0))+1,5]) 
+    plt.ylim([-3,ymax])
+    plt.xlim([-5,10])
+    plt.legend()
+    plt.grid(True)
+    plt.title("ChoiceTriggered_early")
+    plt.xlabel('Time (seconds)')
+    plt.ylabel('dF/F (%)')
+    
+    plt.subplot(1,3,2)
+    PSTHplot(PSTH_Rewarded_m, "b", "darkblue", "RewardedTrials")
+    PSTHplot(PSTH_UnRewarded_m, "r", "darkred", "UnRewardedTrials")
+    ymax = np.max([np.max(np.mean(PSTH_Rewarded_e,axis=0))+1,5]) 
+    plt.ylim([-3,ymax])
+    plt.xlim([-5,10])
+    plt.legend()
+    plt.grid(True)
+    plt.title("ChoiceTriggered_middle")
+    plt.xlabel('Time (seconds)')
+    plt.ylabel('dF/F (%)')
+    
+    plt.subplot(1,3,3)
+    PSTHplot(PSTH_Rewarded_l, "b", "darkblue", "RewardedTrials")
+    PSTHplot(PSTH_UnRewarded_l, "r", "darkred", "UnRewardedTrials")
+    ymax = np.max([np.max(np.mean(PSTH_Rewarded_e,axis=0))+1,5]) 
+    plt.ylim([-3,ymax])
+    plt.xlim([-5,10])
+    plt.legend()
+    plt.grid(True)
+    plt.title("ChoiceTriggered_late")
+    plt.xlabel('Time (seconds)')
+    plt.ylabel('dF/F (%)')
+    plt.savefig(AnalDir + os.sep + "Fig_PSTH_Choice_EML50tr" + str(ii) + ".png")
+
+#%% PSTH summary fig
+
+fig=plt.figure(figsize=(16, 4))
+fig.canvas.set_window_title('Fig_PSTH_summary')
+
+for ii in range(np.size(Traces,1)):
+    
+    Trace_this = Traces[:,ii]
+    PSTH_CueRewarded = PSTHmaker(Trace_this*100, TTL_p_align[Rewarded.astype(int)-1], 100, 200)
+    PSTH_CueUnRewarded = PSTHmaker(Trace_this*100, TTL_p_align[UnRewarded.astype(int)-1], 100, 200)
+    
+    plt.subplot(1,4,ii+1)
+    PSTHplot(PSTH_CueRewarded, "b", "darkblue", "RewardedTrials")
+    PSTHplot(PSTH_CueUnRewarded, "r", "darkred", "UnRewardedTrials")
+    ymax = np.max([np.max(np.mean(PSTH_CueRewarded,axis=0))+1,5]) 
+    plt.ylim([-1,ymax])
+    plt.xlim([-5,10])
+    plt.legend()
+    plt.grid(True)
+    plt.title("CueTriggered ROI: " + str(ii))
+    plt.xlabel('Time (seconds)')
+    plt.ylabel('dF/F (%)')
+
+plt.savefig(AnalDir + os.sep + "Fig_PSTH_Summary.png")
 
 #%% Response Table Based-on Barcode
 
@@ -611,10 +711,10 @@ for ii in range(trialN-1): #ignore the last trial
         Resp_l_based[ii,:] = Resp_l[ii,:] - Resp_base[ii,:] 
         Resp_t_based[ii,:] = Resp_t[ii,:] - Resp_base[ii,:] 
         
-Resp_e[len(Resp_e)-2:len(Resp_e)-1,:] = None
-Resp_l[len(Resp_e)-2:len(Resp_l)-1,:] = None
-Resp_t[len(Resp_e)-2:len(Resp_t)-1,:] = None
-Resp_base[len(Resp_e)-2:len(Resp_base)-1,:] = None
+Resp_e[len(Resp_e)-2:len(Resp_e),:] = None
+Resp_l[len(Resp_e)-2:len(Resp_l),:] = None
+Resp_t[len(Resp_e)-2:len(Resp_t),:] = None
+Resp_base[len(Resp_e)-2:len(Resp_base),:] = None
     
     
 #%%
@@ -625,18 +725,18 @@ for ii in range(np.size(Traces,1)):
     plt.subplot(5,1,1)
 
     mask = (Reward_ID==0) & (Action_ID==1)
-    plt.scatter(np.arange(len(Action_ID))[mask],np.ones(len(Action_ID[mask]))*0.1, c='red', alpha=0.2) 
+    plt.scatter(np.arange(len(Action_ID))[mask],np.ones(len(Action_ID[mask]))*0.1, c='red',label='UnRewarded', alpha=0.2) 
     mask = (Reward_ID==1) & (Action_ID==1)
-    plt.scatter(np.arange(len(Action_ID))[mask],np.ones(len(Action_ID[mask]))*0, c='blue', alpha=0.5)
+    plt.scatter(np.arange(len(Action_ID))[mask],np.ones(len(Action_ID[mask]))*0, c='blue',label='Rewarded', alpha=0.5)
 
     mask = (Reward_ID==0) & (Action_ID==2)
-    plt.scatter(np.arange(len(Action_ID))[mask],np.ones(len(Action_ID[mask]))*0.9,  c='red', alpha=0.2) 
+    plt.scatter(np.arange(len(Action_ID))[mask],np.ones(len(Action_ID[mask]))*0.9, c='red', alpha=0.2) 
     mask = (Reward_ID==1) & (Action_ID==2)
     plt.scatter(np.arange(len(Action_ID))[mask],np.ones(len(Action_ID[mask]))*1, c='blue', alpha=0.5)
 
     mask = (Action_ID==0)
-    plt.scatter(np.arange(len(Action_ID))[mask],np.ones(len(Action_ID[mask]))*0.5, c='black')
-
+    plt.scatter(np.arange(len(Action_ID))[mask],np.ones(len(Action_ID[mask]))*0.5, c='black',label='Ignored')
+    plt.legend() 
     plt.title('Action 0:L, 1:R')
     plt.xlabel('#Trial')
 
@@ -669,6 +769,7 @@ for ii in range(np.size(Traces,1)):
     plt.title('Baseline_Rewarded/Unrewarded')
     plt.ylabel('dF/F')
     
+    plt.tight_layout()
     plt.savefig(AnalDir + os.sep + "Fig_TrialResponses" + str(ii) + ".png")
 
 #plt.figure()

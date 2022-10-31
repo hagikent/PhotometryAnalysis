@@ -37,7 +37,7 @@ plt.close('all')
 #AnalDir = "/Users/kenta/Library/CloudStorage/OneDrive-AllenInstitute/Data/220421/KH_FB10"
 
 #Win
-AnalDir = r"C:\Users\kenta.hagihara\OneDrive - Allen Institute\Data\220825\KH_FB40"
+AnalDir = r"C:\Users\kenta.hagihara\OneDrive - Allen Institute\Data\220928\KH_FB33"
 
 nFibers = 2
 nColor = 3

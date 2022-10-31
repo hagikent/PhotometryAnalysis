@@ -37,7 +37,7 @@ import glob
 #AnalDir = "/Users/kenta/Library/CloudStorage/OneDrive-AllenInstitute/Data/220421/KH_FB10"
 
 #Win
-AnalDir = r"C:\Users\kenta.hagihara\OneDrive - Allen Institute\Data\FIP\220816\KH_FB37"
+AnalDir = r"C:\Users\kenta.hagihara\OneDrive - Allen Institute\FIP\220926\KH_FB32"
 
 nFibers = 2
 nColor = 3
@@ -571,7 +571,6 @@ plt.title('R:')
 kernelSize=7
 
 plt.figure()
-plt.subplot(5,1,1)
 G1norm = G1_dF_F / np.max(G1_dF_F)
 G1norm = medfilt(G1norm, kernel_size=kernelSize)
 G2norm = G2_dF_F / np.max(G2_dF_F)
@@ -586,7 +585,7 @@ plt.plot(time_seconds, G1norm / np.max(G1norm), 'green')
 plt.plot(time_seconds, R1norm / np.max(R1norm), 'magenta')
 
 plt.plot(time_seconds, G2norm / np.max(G2norm), 'blue')
-plt.plot(time_seconds, R2norm / np.max(R2norm), 'red')
+plt.plot(time_seconds, R2norm / np.max(R2norm), 'orange')
 
 plt.subplot(5,1,2)
 plt.plot(time_seconds, G1norm / np.max(G1norm), 'green')
@@ -595,7 +594,7 @@ plt.plot(time_seconds, R1norm / np.max(R1norm), 'magenta')
 plt.subplot(5,1,4)
 plt.plot(time_seconds, G2norm / np.max(G2norm), 'blue')
 plt.subplot(5,1,5)
-plt.plot(time_seconds, R2norm / np.max(R2norm), 'red')
+plt.plot(time_seconds, R2norm / np.max(R2norm), 'orange')
 
 
 #%%
