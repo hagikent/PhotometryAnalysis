@@ -30,6 +30,7 @@ import os
 import numpy as np
 import pandas as pd
 import pylab as plt
+import matplotlib.gridspec as gridspec
 import csv
 import glob
 
@@ -37,8 +38,40 @@ import glob
 #AnalDir = "/Users/kenta/Library/CloudStorage/OneDrive-AllenInstitute/Data/220409/KH_FB7"
 
 #Win
-AnalDir = r""
+#NAc 4NM 10
+#AnalDir = r"E:\Data\fpNPM_KH-FB31_2022-09-09_10-13-01"
+#AnalDir = r"N:\workgroups\discovery\KentaHagihara\photometry_FIPtemp_tower1\221010\KH_FB42"
+#AnalDir = r"N:\workgroups\discovery\KentaHagihara\photometry_FIP2temp_tower6\220929\KH_FB43"
+#AnalDir = r"N:\workgroups\discovery\KentaHagihara\photometry_FPtemp\221026\KH_FB46"
+#AnalDir = r"N:\workgroups\discovery\KentaHagihara\photometry_FIP2temp_tower6\221026\KH_FB48"
+#AnalDir = r"N:\workgroups\discovery\KentaHagihara\photometry_FIP2temp_tower6\221013\KH_FB49"
+#AnalDir = r"N:\workgroups\discovery\KentaHagihara\photometry_FPtemp\221012\KH_FB52"
+#AnalDir = r"N:\workgroups\discovery\KentaHagihara\photometry_FIP2temp_tower6\221025\KH_FB53"
+#AnalDir = r"N:\workgroups\discovery\KentaHagihara\photometry_FIP2temp_tower6\221115\KH_FB54"
+#AnalDir = r"N:\workgroups\discovery\KentaHagihara\photometry_FIP2temp_tower6\221114\KH_FB54"
 
+#New Locations
+#AnalDir = r"N:\workgroups\discovery\KentaHagihara\photometry_FIP2temp_tower6\221215\KH_FB56"
+#AnalDir = r"N:\workgroups\discovery\KentaHagihara\photometry_FPtemp\221210\KH_FB57"
+#AnalDir = r"N:\workgroups\discovery\KentaHagihara\photometry_FIPtemp_tower1\221213\KH_FB58"
+#AnalDir = r"N:\workgroups\discovery\KentaHagihara\photometry_FPtemp\221214\KH_FB60"
+#AnalDir = r"N:\workgroups\discovery\KentaHagihara\photometry_FIPtemp_tower1\221216\KH_FB61"
+#AnalDir = r"N:\workgroups\discovery\KentaHagihara\photometry_FIPtemp_tower1\221215\KH_FB62"
+#AnalDir = r"N:\workgroups\discovery\KentaHagihara\photometry_FIPtemp_tower1\230112\KH_FB60"
+
+AnalDir = r"F:\photometry_NPM\230424\KH_FB80"
+AnalDir = r"F:\photometry_FIP2\230424\KH_FB81"
+AnalDir = r"F:\photometry_FIP3\230424\KH_FB82"
+AnalDir = r"F:\photometry_NPM\230424\KH_FB83"
+AnalDir = r"F:\photometry_FIP2\230424\KH_FB84"
+AnalDir = r"F:\photometry_FIP3\230424\KH_FB85"
+
+AnalDir = r"F:\photometry_FIP3\230420\KH_FB82"
+AnalDir = r"F:\photometry_FIP3\230420\KH_FB85"
+
+AnalDir = r"F:\photometry_FIP2\230425\KH_FB85"
+
+AnalDir = r"F:\photometry_FIP3\230425\KH_FB82_test"
 
 FlagNoRawLick = 0
 
@@ -49,6 +82,7 @@ Trace3 = np.load(glob.glob(AnalDir + os.sep + "R2_dF_F.npy")[0])
 
 Traces = np.vstack((Trace0, Trace1, Trace2, Trace3))
 Traces = Traces.T  ## size0:time/size1:number of signals
+time_seconds = np.arange(len(Traces)) /20 
 
 GCaMP_dF_F = np.load(glob.glob(AnalDir + os.sep + "G2_dF_F.npy")[0])
 R_dF_F = np.load(glob.glob(AnalDir + os.sep + "R2_dF_F.npy")[0])
@@ -164,6 +198,7 @@ if 'TTLsignal3' in locals():
     
 #%% Alignment between PMT and TTL
 TTL_p_align = []
+TTL_p_align_1k = []
 
 for ii in range(len(TTL_p)):
     ind_tmp = int(np.ceil(TTL_p[ii]/1000)-2)  #consider NIDAQ buffer 1s (1000samples@1kHz)
@@ -172,13 +207,16 @@ for ii in range(len(TTL_p)):
         break
     ms_target = TTLts[ind_tmp]
     idx = int(np.argmin(np.abs(np.array(PMts2[:,0]) - ms_target - dec_tmp*1000)))
+    residual = np.array(PMts2[idx,0]) - ms_target - dec_tmp*1000
     TTL_p_align = np.append(TTL_p_align, idx)
+    TTL_p_align_1k = np.append(TTL_p_align_1k, time_seconds[idx] - residual/1000)    
     
 TTL_l_align = TTL_l[0:len(TTL_p_align)] 
 
 
 if 'TTL2_p' in locals():
     TTL2_p_align = []
+    TTL2_p_align_1k = []
     for ii in range(len(TTL2_p)):
         ind_tmp = int(np.ceil(TTL2_p[ii]/1000)-2)  #consider NIDAQ buffer 1s (1000samples@1kHz)
         dec_tmp = TTL2_p[ii]/1000 + 1 - np.ceil(TTL2_p[ii]/1000)
@@ -186,10 +224,13 @@ if 'TTL2_p' in locals():
             break
         ms_target = TTLts[ind_tmp]
         idx = int(np.argmin(np.abs(np.array(PMts2[:,0]) - ms_target - dec_tmp*1000)))
+        residual = np.array(PMts2[idx,0]) - ms_target - dec_tmp*1000
         TTL2_p_align = np.append(TTL2_p_align, idx)
-    
+        TTL2_p_align_1k = np.append(TTL2_p_align_1k, time_seconds[idx] - residual/1000)    
+        
 if 'TTL3_p' in locals():
     TTL3_p_align = []
+    TTL3_p_align_1k = []
     for ii in range(len(TTL3_p)):
         ind_tmp = int(np.ceil(TTL3_p[ii]/1000)-2)  #consider NIDAQ buffer 1s (1000samples@1kHz)
         dec_tmp = TTL3_p[ii]/1000 + 1 - np.ceil(TTL3_p[ii]/1000)
@@ -197,7 +238,9 @@ if 'TTL3_p' in locals():
             break
         ms_target = TTLts[ind_tmp]
         idx = int(np.argmin(np.abs(np.array(PMts2[:,0]) - ms_target - dec_tmp*1000)))
+        residual = np.array(PMts2[idx,0]) - ms_target - dec_tmp*1000
         TTL3_p_align = np.append(TTL3_p_align, idx)
+        TTL3_p_align_1k = np.append(TTL3_p_align_1k, time_seconds[idx] - residual/1000)   
 
 #%% Rewarded Unrewarded L/R trials
 
@@ -207,11 +250,13 @@ RewardedR = []
 UnRewardedR = []
 
 for ii in range(len(TTL_l_align)-1):
-    if TTL_l_align[ii] == 2 and TTL_l_align[ii+1] == 30:  #30:reward, #40: ITI start
+    #if TTL_l_align[ii] == 2 and TTL_l_align[ii+1] == 30:  #30:reward, #40: ITI start
+    if TTL_l_align[ii] == 2 and TTL_l_align[ii+1] <= 30 and TTL_l_align[ii+1] >= 24: #24,25,30:temp_fix
         RewardedL = np.append(RewardedL,ii)
     if TTL_l_align[ii] == 2 and TTL_l_align[ii+1] == 40:
          UnRewardedL = np.append(UnRewardedL,ii)   
-    if TTL_l_align[ii] == 3 and TTL_l_align[ii+1] == 30:
+    #if TTL_l_align[ii] == 3 and TTL_l_align[ii+1] == 30:
+    if TTL_l_align[ii] == 3 and TTL_l_align[ii+1] <= 30 and TTL_l_align[ii+1] >= 24: #24,25,30:temp_fix   
         RewardedR = np.append(RewardedR,ii)
     if TTL_l_align[ii] == 3 and TTL_l_align[ii+1] == 40:
         UnRewardedR = np.append(UnRewardedR,ii)
@@ -246,18 +291,13 @@ for ii in range(len(BarcodeP)):
     
     del temp, temp2
     
-#%% ReactionTime
+#%% ReactionTime (re-calculated later)
 ReTiRaw = []
 for ii in range(len(TTL_l)-1):
     if TTL_l[ii] == 1 and (TTL_l[ii+1] == 3 or TTL_l[ii+1] == 2):
         ReTiRaw = np.append(ReTiRaw, TTL_p[ii+1] - TTL_p[ii])
-
-plt.figure()
-plt.xlabel("msec")
-plt.ylabel("#Trial")
-plt.hist(ReTiRaw,50,range=[0, 1000])
-plt.title("ReactionTime")
-plt.savefig(AnalDir + os.sep + "Fig_ReactionTime.png")
+    elif TTL_l[ii] == 1 and TTL_l[ii+1] == 40:
+        ReTiRaw = np.append(ReTiRaw, np.nan)
 
 #%%
 """
@@ -270,7 +310,6 @@ plt.figure()
 plt.hist(ReTi)
 """
 #%% Ca, Behavior Overview
-time_seconds = np.arange(len(Traces)) /20
 
 ##
 
@@ -341,16 +380,19 @@ def PSTHmaker(TC, Stims, preW, postW):
                 cnt = 1
             else:
                 PSTHout = np.vstack([PSTHout,TC[A:B]])
-    
+        else:
+            PSTHout = np.vstack([PSTHout, np.zeros(preW+postW)])
+        
     return PSTHout
 
 
 def PSTHplot(PSTH, MainColor, SubColor, LabelStr):
     plt.plot(np.arange(np.shape(PSTH)[1])/20 - 5, np.mean(PSTH.T,axis=1),label=LabelStr,color = MainColor)
-    plt.plot(np.arange(np.shape(PSTH)[1])/20 - 5, np.mean(PSTH.T,axis=1) + np.std(PSTH.T,axis=1)/np.sqrt(np.shape(PSTH)[0]),color = SubColor, linestyle = "dotted")
-    plt.plot(np.arange(np.shape(PSTH)[1])/20 - 5, np.mean(PSTH.T,axis=1) - np.std(PSTH.T,axis=1)/np.sqrt(np.shape(PSTH)[0]),color = SubColor, linestyle = "dotted")
-
-
+    #plt.plot(np.arange(np.shape(PSTH)[1])/20 - 5, np.mean(PSTH.T,axis=1) + np.std(PSTH.T,axis=1)/np.sqrt(np.shape(PSTH)[0]),color = SubColor, linestyle = "dotted")
+    #plt.plot(np.arange(np.shape(PSTH)[1])/20 - 5, np.mean(PSTH.T,axis=1) - np.std(PSTH.T,axis=1)/np.sqrt(np.shape(PSTH)[0]),color = SubColor, linestyle = "dotted")
+    y11 =  np.mean(PSTH.T,axis=1) + np.std(PSTH.T,axis=1)/np.sqrt(np.shape(PSTH)[0])
+    y22 =  np.mean(PSTH.T,axis=1) - np.std(PSTH.T,axis=1)/np.sqrt(np.shape(PSTH)[0])
+    plt.fill_between(np.arange(np.shape(PSTH)[1])/20 - 5, y11, y22, facecolor=SubColor, alpha=0.5)
 
 #%% Ploting Loop
 for ii in range(np.size(Traces,1)):
@@ -383,7 +425,8 @@ for ii in range(np.size(Traces,1)):
     PSTHplot(PSTH_Rewarded, "b", "darkblue", "RewardedTrials")
     PSTHplot(PSTH_UnRewarded, "r", "darkred", "UnRewardedTrials")
     ymax = np.max([np.max(np.mean(PSTH_Rewarded,axis=0))+1,5]) 
-    plt.ylim([-1,ymax])
+    ymin = np.min([np.min(np.mean(PSTH_Rewarded,axis=0))-1,-2]) 
+    plt.ylim([ymin,ymax])
     plt.xlim([-5,10])
     plt.legend()
     plt.grid(True)
@@ -396,7 +439,8 @@ for ii in range(np.size(Traces,1)):
     PSTHplot(PSTH_RewardedL, "b", "darkblue", "RewardedTrials")
     PSTHplot(PSTH_UnRewardedL, "r", "darkred", "UnRewardedTrials")
     ymax = np.max([np.max(np.mean(PSTH_Rewarded,axis=0))+1,5]) 
-    plt.ylim([-1,ymax])
+    ymin = np.min([np.min(np.mean(PSTH_Rewarded,axis=0))-1,-2]) 
+    plt.ylim([ymin,ymax])
     plt.xlim([-5,10])
     plt.legend()
     plt.grid(True)
@@ -409,7 +453,8 @@ for ii in range(np.size(Traces,1)):
     PSTHplot(PSTH_RewardedR, "b", "darkblue", "RewardedTrials")
     PSTHplot(PSTH_UnRewardedR, "r", "darkred", "UnRewardedTrials")
     ymax = np.max([np.max(np.mean(PSTH_Rewarded,axis=0))+1,5]) 
-    plt.ylim([-1,ymax])
+    ymin = np.min([np.min(np.mean(PSTH_Rewarded,axis=0))-1,-2]) 
+    plt.ylim([ymin,ymax])
     plt.xlim([-5,10])
     plt.legend()
     plt.grid(True)
@@ -603,8 +648,9 @@ for ii in range(np.size(Traces,1)):
     plt.subplot(1,4,ii+1)
     PSTHplot(PSTH_CueRewarded, "b", "darkblue", "RewardedTrials")
     PSTHplot(PSTH_CueUnRewarded, "r", "darkred", "UnRewardedTrials")
-    ymax = np.max([np.max(np.mean(PSTH_CueRewarded,axis=0))+1,5]) 
-    plt.ylim([-1,ymax])
+    ymax = np.max([np.max(np.mean(PSTH_CueRewarded,axis=0))+4,5]) 
+    ymin = np.min([np.min(np.mean(PSTH_CueRewarded,axis=0))-1,-1]) 
+    plt.ylim([ymin,ymax])
     plt.xlim([-5,10])
     plt.legend()
     plt.grid(True)
@@ -613,6 +659,7 @@ for ii in range(np.size(Traces,1)):
     plt.ylabel('dF/F (%)')
 
 plt.savefig(AnalDir + os.sep + "Fig_PSTH_Summary.png")
+
 
 #%% Response Table Based-on Barcode
 
@@ -640,7 +687,7 @@ for ii in range(len(TTL_l_align)):
 
 TTL_l_align_T = TTL_l_align[non10] #subselecting 1,2,3,20,30,40
 TTL_p_align_T = TTL_p_align[non10]
-TTL_p_T = TTL_p_align[non10] #NI time
+TTL_p_T = TTL_p[non10] #NI time
 
 
 #Table making Main Loop 
@@ -781,6 +828,267 @@ PSTH_all0=PSTHmaker(Traces[:,0]*100, CueTime_FPf, 100, 200) #-5sec - +10sec
 PSTH_all1=PSTHmaker(Traces[:,1]*100, CueTime_FPf, 100, 200) #-5sec - +10sec
 PSTH_all2=PSTHmaker(Traces[:,2]*100, CueTime_FPf, 100, 200) #-5sec - +10sec
 PSTH_all3=PSTHmaker(Traces[:,3]*100, CueTime_FPf, 100, 200) #-5sec - +10sec
+
+#%% Switch behavior sorting (221204)
+Switch_ID = np.zeros(len(TTL_l_align_T[TTL_l_align_T==20]))
+
+History_ID = np.zeros(len(TTL_l_align_T[TTL_l_align_T==20])) 
+# AA:1; Aa:2; aA:3; aa:4; AB:5; Ab:6; aB:7; ab:8; ignored:0
+
+for ii in range(np.size(Switch_ID)-1):
+    if Action_ID[ii]==1 and Action_ID[ii+1]==2:
+        Switch_ID[ii+1] = 1 #Left to Right switch
+        
+    if Action_ID[ii]==2 and Action_ID[ii+1]==1:
+        Switch_ID[ii+1] = 2 #Right to Left switch
+
+        
+    if Reward_ID[ii]==1 and Reward_ID[ii+1]==1 and Switch_ID[ii+1]==0:
+        History_ID[ii+1] = 1
+    
+    if Reward_ID[ii]==1 and Reward_ID[ii+1]==0 and Switch_ID[ii+1]==0:
+        History_ID[ii+1] = 2    
+    
+    if Reward_ID[ii]==0 and Reward_ID[ii+1]==1 and Switch_ID[ii+1]==0:
+        History_ID[ii+1] = 3        
+        
+    if Reward_ID[ii]==0 and Reward_ID[ii+1]==0 and Switch_ID[ii+1]==0:
+        History_ID[ii+1] = 4
+        
+    if Reward_ID[ii]==1 and Reward_ID[ii+1]==1 and Switch_ID[ii+1]==1:
+        History_ID[ii+1] = 5        
+        
+    if Reward_ID[ii]==1 and Reward_ID[ii+1]==0 and Switch_ID[ii+1]==1:
+        History_ID[ii+1] = 6    
+
+    if Reward_ID[ii]==0 and Reward_ID[ii+1]==1 and Switch_ID[ii+1]==1:
+        History_ID[ii+1] = 7        
+        
+    if Reward_ID[ii]==0 and Reward_ID[ii+1]==0 and Switch_ID[ii+1]==1:
+        History_ID[ii+1] = 8  
+
+plt.figure()
+plt.hist(History_ID,bins=[0, 1, 2, 3, 4, 5, 6, 7, 8, 9])
+plt.ylabel('Trial count')
+plt.title('ignored:0; AA:1; Aa:2; aA:3; aa:4; AB:5; Ab:6; aB:7; ab:8;')
+
+#%% Switch/History based sorting (221204)
+plt.figure(figsize=(20, 16))
+ax1 = plt.subplot(4,4,1)
+PSTHplot(PSTH_all0[History_ID==1,:], "b", "darkblue", "AA")
+PSTHplot(PSTH_all0[History_ID==2,:], "r", "darkred", "Aa")
+plt.title("Rewarded (t-1) -> Stay")
+plt.ylabel('dF/F (%)')
+plt.grid(True)
+plt.subplot(4,4,2,sharey=ax1)
+PSTHplot(PSTH_all0[History_ID==3,:], "b", "darkblue", "aA")
+PSTHplot(PSTH_all0[History_ID==4,:], "r", "darkred", "aa")
+plt.title("UnRewarded (t-1) -> Stay")
+plt.grid(True)
+plt.subplot(4,4,3,sharey=ax1)
+PSTHplot(PSTH_all0[History_ID==5,:], "b", "darkblue", "AB")
+PSTHplot(PSTH_all0[History_ID==6,:], "r", "darkred", "Ab")
+plt.title("Rewarded (t-1) -> Switch")
+plt.grid(True)
+plt.subplot(4,4,4,sharey=ax1)
+PSTHplot(PSTH_all0[History_ID==7,:], "b", "darkblue", "aB")
+PSTHplot(PSTH_all0[History_ID==8,:], "r", "darkred", "ab")
+plt.title("UnRewarded (t-1) -> Switch")
+plt.grid(True)
+
+ax5 = plt.subplot(4,4,5)
+PSTHplot(PSTH_all1[History_ID==1,:], "b", "darkblue", "AA")
+PSTHplot(PSTH_all1[History_ID==2,:], "r", "darkred", "Aa")
+plt.ylabel('dF/F (%)')
+plt.grid(True)
+plt.subplot(4,4,6,sharey=ax5)
+PSTHplot(PSTH_all1[History_ID==3,:], "b", "darkblue", "aA")
+PSTHplot(PSTH_all1[History_ID==4,:], "r", "darkred", "aa")
+plt.grid(True)
+plt.subplot(4,4,7,sharey=ax5)
+PSTHplot(PSTH_all1[History_ID==5,:], "b", "darkblue", "AB")
+PSTHplot(PSTH_all1[History_ID==6,:], "r", "darkred", "Ab")
+plt.grid(True)
+plt.subplot(4,4,8,sharey=ax5)
+PSTHplot(PSTH_all1[History_ID==7,:], "b", "darkblue", "aB")
+PSTHplot(PSTH_all1[History_ID==8,:], "r", "darkred", "ab")
+plt.grid(True)
+
+ax9 = plt.subplot(4,4,9)
+PSTHplot(PSTH_all2[History_ID==1,:], "b", "darkblue", "AA")
+PSTHplot(PSTH_all2[History_ID==2,:], "r", "darkred", "Aa")
+plt.ylabel('dF/F (%)')
+plt.grid(True)
+plt.subplot(4,4,10,sharey=ax9)
+PSTHplot(PSTH_all2[History_ID==3,:], "b", "darkblue", "aA")
+PSTHplot(PSTH_all2[History_ID==4,:], "r", "darkred", "aa")
+plt.grid(True)
+plt.subplot(4,4,11,sharey=ax9)
+PSTHplot(PSTH_all2[History_ID==5,:], "b", "darkblue", "AB")
+PSTHplot(PSTH_all2[History_ID==6,:], "r", "darkred", "Ab")
+plt.grid(True)
+plt.subplot(4,4,12,sharey=ax9)
+PSTHplot(PSTH_all2[History_ID==7,:], "b", "darkblue", "aB")
+PSTHplot(PSTH_all2[History_ID==8,:], "r", "darkred", "ab")
+plt.grid(True)
+
+ax13 = plt.subplot(4,4,13)
+PSTHplot(PSTH_all3[History_ID==1,:], "b", "darkblue", "AA")
+PSTHplot(PSTH_all3[History_ID==2,:], "r", "darkred", "Aa")
+plt.ylabel('dF/F (%)')
+plt.grid(True)
+plt.subplot(4,4,14,sharey=ax13)
+PSTHplot(PSTH_all3[History_ID==3,:], "b", "darkblue", "aA")
+PSTHplot(PSTH_all3[History_ID==4,:], "r", "darkred", "aa")
+plt.grid(True)
+plt.subplot(4,4,15,sharey=ax13)
+PSTHplot(PSTH_all3[History_ID==5,:], "b", "darkblue", "AB")
+PSTHplot(PSTH_all3[History_ID==6,:], "r", "darkred", "Ab")
+plt.grid(True)
+plt.subplot(4,4,16,sharey=ax13)
+PSTHplot(PSTH_all3[History_ID==7,:], "b", "darkblue", "aB")
+PSTHplot(PSTH_all3[History_ID==8,:], "r", "darkred", "ab")
+plt.grid(True)
+
+#%% Reaction Time Analysis (221204 added)
+
+ReactionT = ActionTime_NI - CueTime_NI #1kHz
+Xtemp=np.arange(len(ReactionT))
+Reward_IDshift=np.roll(Reward_ID,1)
+
+gs = gridspec.GridSpec(3,3)
+
+plt.figure()
+plt.subplot(gs[0,0])
+plt.hist(ReactionT[Action_ID==1],50,range=[0, 1000],color=[0.5, 0.5, 0.5],label='Left')
+plt.hist(ReactionT[Action_ID==2],50,range=[0, 1000],color=[1, 0, 0, 0.5],label='Right')
+plt.xlabel("msec")
+plt.ylabel("#Trial")
+plt.title("ReactionTime")
+plt.legend()
+
+plt.subplot(gs[0,1])
+plt.hist(ReactionT[Switch_ID==0],50,range=[0, 1000],color=[0.5, 0.5, 0.5],label='Stay')
+plt.hist(ReactionT[Switch_ID==1],50,range=[0, 1000],color=[1, 0, 0, 0.5],label='t-1:Left->Right')
+plt.hist(ReactionT[Switch_ID==2],50,range=[0, 1000],color=[0, 0, 1, 0.5],label='t-1:Right->Left')
+plt.xlabel("msec")
+plt.ylabel("#Trial")
+plt.title("ReactionTime")
+plt.legend()
+
+plt.subplot(gs[0,2])
+plt.hist(ReactionT[Reward_IDshift==0],50,range=[0, 1000],color=[1, 0, 0,0.5],label='Previously UnRewarded')
+plt.hist(ReactionT[Reward_IDshift==1],50,range=[0, 1000],color=[0, 0, 1, 0.5],label='Previously Rewarded')
+
+plt.xlabel("msec")
+plt.ylabel("#Trial")
+plt.title("ReactionTime")
+plt.legend()
+
+
+
+plt.subplot(gs[1,:])
+plt.scatter(Xtemp[Action_ID==1], ReactionT[Action_ID==1],s=20, c=[0, 0, 0, 0.5], label='Left')
+plt.scatter(Xtemp[Action_ID==2], ReactionT[Action_ID==2],s=20, c=[1, 0, 0, 0.5], label='Right')
+plt.xlabel('TrialN')
+plt.ylabel('Reaction Time (ms)')
+plt.legend()
+
+plt.subplot(gs[2,:])
+plt.scatter(Xtemp[Switch_ID==0], ReactionT[Switch_ID==0],s=20, c=[0, 0, 0, 0.5], label='Stay')
+plt.scatter(Xtemp[Switch_ID==1], ReactionT[Switch_ID==1],s=20, c=[1, 0, 0, 0.5], label='t-1:Left -> t:Right')
+plt.scatter(Xtemp[Switch_ID==2], ReactionT[Switch_ID==2],s=20, c=[0, 0, 1, 0.5], label='t-1:Right -> t:Left')
+plt.xlabel('TrialN')
+plt.ylabel('Reaction Time (ms)')
+plt.legend()
+plt.savefig(AnalDir + os.sep + "Fig_ReactionTime_Switch.png")
+
+
+#%% Reaction Time Response Analysis (221203 added)
+
+plt.figure(figsize=(20, 16))
+
+for ii in range(np.size(Traces,1)):
+    plt.subplot(4, np.size(Traces,1), ii*4+1)
+    plt.scatter(ReactionT[Reward_ID==0],Resp_e[Reward_ID==0,ii],label='UnRewarded', s=25, c=[1, 0, 0, 0.3])
+    plt.scatter(ReactionT[Reward_ID==1],Resp_e[Reward_ID==1,ii],label='Rewarded', s=25, c=[0, 0, 1, 0.3])
+    plt.ylabel('dF/F (%)')
+    if ii == 0: 
+        plt.title("CueResp")
+    if ii == np.size(Traces,1)-1:
+        plt.xlabel('Reaction Time (ms)')
+        
+    plt.subplot(4, np.size(Traces,1), ii*4+2)
+    plt.scatter(ReactionT[Reward_ID==0],Resp_l[Reward_ID==0,ii],label='UnRewarded', s=25, c=[1, 0, 0, 0.3])
+    plt.scatter(ReactionT[Reward_ID==1],Resp_l[Reward_ID==1,ii],label='Rewarded', s=25, c=[0, 0, 1, 0.3])
+    if ii == 0: 
+        plt.title("RewardResp")
+    if ii == np.size(Traces,1)-1:
+        plt.xlabel('Reaction Time (ms)')
+    
+    plt.subplot(4, np.size(Traces,1), ii*4+3)
+    plt.scatter(ReactionT[Reward_ID==0],Resp_t[Reward_ID==0,ii],label='UnRewarded', s=25, c=[1, 0, 0, 0.3])
+    plt.scatter(ReactionT[Reward_ID==1],Resp_t[Reward_ID==1,ii],label='Rewarded', s=25, c=[0, 0, 1, 0.3])    
+    if ii == 0: 
+        plt.title("ITIResp")
+    if ii == np.size(Traces,1)-1:
+        plt.xlabel('Reaction Time (ms)') 
+
+    plt.subplot(4, np.size(Traces,1), ii*4+4)
+    plt.scatter(ReactionT[Reward_ID==0],Resp_base[Reward_ID==0,ii],label='UnRewarded', s=25, c=[1, 0, 0, 0.3])
+    plt.scatter(ReactionT[Reward_ID==1],Resp_base[Reward_ID==1,ii],label='Rewarded', s=25, c=[0, 0, 1, 0.3])
+    if ii == 0: 
+        plt.title("Base")
+    if ii == np.size(Traces,1)-1:
+        plt.xlabel('Reaction Time (ms)')  
+
+plt.savefig(AnalDir + os.sep + "Fig_ReactionTime_resp.png")
+
+#%% 230213
+RT_thres = 200
+plt.figure(figsize=(8, 16))
+
+for ii in range(np.size(Traces,1)):
+
+    early_R = np.logical_and([Reward_ID==1], [ReactionT<RT_thres])
+    early_U = np.logical_and([Reward_ID==0], [ReactionT<RT_thres])
+    late_R = np.logical_and([Reward_ID==1], [ReactionT>RT_thres])
+    late_U = np.logical_and([Reward_ID==0], [ReactionT>RT_thres])
+
+    e_R = np.nanmean(Resp_e[early_R[0],ii])
+    e_Rs = np.nanstd(Resp_e[early_R[0],ii])/np.sqrt(len(Resp_e[early_R[0],ii]))
+    e_U = np.nanmean(Resp_e[early_U[0],ii])
+    e_Us = np.nanstd(Resp_e[early_U[0],ii])/np.sqrt(len(Resp_e[early_U[0],ii]))
+    l_R = np.nanmean(Resp_e[late_R[0],ii])
+    l_Rs = np.nanstd(Resp_e[late_R[0],ii])/np.sqrt(len(Resp_e[late_R[0],ii]))
+    l_U = np.nanmean(Resp_e[late_U[0],ii])
+    l_Us = np.nanstd(Resp_e[late_U[0],ii])/np.sqrt(len(Resp_e[late_U[0],ii]))
+
+    plt.subplot(4,2,ii*2+1)
+    plt.errorbar([0.9, 1.9], [e_R, l_R], [e_Rs, l_Rs],c=[0, 0, 1],label='Rewarded')
+    plt.errorbar([1.1, 2.1], [e_U, l_U], [e_Us, l_Us],c=[1, 0, 0],label='UnRewarded')
+    plt.xlim([0.5, 2.5])
+    plt.xticks([1, 2],['<200ms','>200ms'])
+    plt.title('CueResp')
+    plt.legend()
+
+    e_R = np.nanmean(Resp_l[early_R[0],ii])
+    e_Rs = np.nanstd(Resp_l[early_R[0],ii])/np.sqrt(len(Resp_l[early_R[0],ii]))
+    e_U = np.nanmean(Resp_l[early_U[0],ii])
+    e_Us = np.nanstd(Resp_l[early_U[0],ii])/np.sqrt(len(Resp_l[early_U[0],ii]))
+    l_R = np.nanmean(Resp_l[late_R[0],ii])
+    l_Rs = np.nanstd(Resp_l[late_R[0],ii])/np.sqrt(len(Resp_l[late_R[0],ii]))
+    l_U = np.nanmean(Resp_l[late_U[0],ii])
+    l_Us = np.nanstd(Resp_l[late_U[0],ii])/np.sqrt(len(Resp_l[late_U[0],ii]))
+
+    plt.subplot(4,2,(ii+1)*2)
+    plt.errorbar([0.9, 1.9], [e_R, l_R], [e_Rs, l_Rs],c=[0, 0, 1],label='Rewarded')
+    plt.errorbar([1.1, 2.1], [e_U, l_U], [e_Us, l_Us],c=[1, 0, 0],label='UnRewarded')
+    plt.xlim([0.5, 2.5])
+    plt.xticks([1, 2],['<200ms','>200ms'])
+    plt.title('RewardResp')
+    plt.legend()
+
     
 #%% Colating Trial Data into pd.dataframe
 
@@ -793,11 +1101,12 @@ PSTH_all3=PSTHmaker(Traces[:,3]*100, CueTime_FPf, 100, 200) #-5sec - +10sec
 #  4. ActionTime_FPf: timing of action/choice, in photometry frameN
 #  5-8. Resp_: averaged dF/F per trial; e:early,l:late,t:tail; base:baseline
 #  9. PSTH_all: 
+#  10. Reaction Time(ms) raw (1kHz), 221203added  
 
-df=pd.DataFrame([BarChar,Action_ID,Reward_ID,CueTime_FPf,ActionTime_FPf,Resp_e,Resp_l,Resp_t,Resp_base,PSTH_all0,PSTH_all1,PSTH_all2,PSTH_all3])
+df=pd.DataFrame([BarChar,Action_ID,Reward_ID,CueTime_FPf,ActionTime_FPf,Resp_e,Resp_l,Resp_t,Resp_base,PSTH_all0,PSTH_all1,PSTH_all2,PSTH_all3,ReTiRaw])
 
 df = df.T
-df = df.set_axis(['Barcode', 'Action_ID', 'Reward_ID', 'CueTime_FPf','ActionTime_FPf','Resp_e','Resp_l','Resp_t','Resp_base', 'PSTH0', 'PSTH1', 'PSTH2', 'PSTH3'], axis='columns')
+df = df.set_axis(['Barcode', 'Action_ID', 'Reward_ID', 'CueTime_FPf','ActionTime_FPf','Resp_e','Resp_l','Resp_t','Resp_base', 'PSTH0', 'PSTH1', 'PSTH2', 'PSTH3', 'ReactionTime'], axis='columns')
 df.to_pickle(AnalDir + os.sep + 'DataFrame.pkl')
 
 

@@ -33,11 +33,10 @@ import glob
 
 #%% import 
 plt.close('all')
-#Mac
-#AnalDir = "/Users/kenta/Library/CloudStorage/OneDrive-AllenInstitute/Data/220421/KH_FB10"
 
 #Win
-AnalDir = r"C:\Users\kenta.hagihara\OneDrive - Allen Institute\Data\220928\KH_FB33"
+AnalDir = r"F:\photometry_FIP3\230425\KH_FB82_test"
+
 
 nFibers = 2
 nColor = 3
@@ -49,10 +48,21 @@ b_percentile = 0.70 #To calculare F0, median of bottom x%
 #BiExpFitIni = [1,1e-3,5,1e-3,5]
 BiExpFitIni = [1,1e-3,1,1e-3,1]  #currentlu not used
 
-file1  = glob.glob(AnalDir + os.sep + "L415*")[0]
-file2 = glob.glob(AnalDir + os.sep + "L470*")[0]
-file3 = glob.glob(AnalDir + os.sep + "L560*")[0]
-
+if bool(glob.glob(AnalDir + os.sep + "L470*")) == True:
+    print('preprocessing Neurophotometrics Data')
+    file1  = glob.glob(AnalDir + os.sep + "L415*")[0]
+    file2 = glob.glob(AnalDir + os.sep + "L470*")[0]
+    file3 = glob.glob(AnalDir + os.sep + "L560*")[0]
+    
+elif bool(glob.glob(AnalDir + os.sep + "FIP_DataG*")) == True:
+    print('preprocessing FIP Data')
+    file1  = glob.glob(AnalDir + os.sep + "FIP_DataIso*")[0]
+    file2 = glob.glob(AnalDir + os.sep + "FIP_DataG*")[0]
+    file3 = glob.glob(AnalDir + os.sep + "FIP_DataR*")[0]
+    
+else:
+    print('photometry raw data missing; please check the folder specified as AnalDir')
+          
 with open(file1) as f:
     reader = csv.reader(f)
     datatemp = np.array([row for row in reader])
@@ -86,14 +96,46 @@ data3 = data3[0:Length]
 #Data_Fiber2G = data2[:,4]
 #Data_Fiber2R = data3[:,6]
 #%% from 220609-, ROI0:8;ROI1:9,ROI2:10,ROI3:11;
-Data_Fiber1iso = data1[:,8]
-Data_Fiber1G = data2[:,8]
-Data_Fiber1R = data3[:,10]
- 
-Data_Fiber2iso = data1[:,9]
-Data_Fiber2G = data2[:,9]
-Data_Fiber2R = data3[:,11]
 
+if bool(glob.glob(AnalDir + os.sep + "L470*")) == True:
+    Data_Fiber1iso = data1[:,8]
+    Data_Fiber1G = data2[:,8]
+    Data_Fiber1R = data3[:,10]
+     
+    Data_Fiber2iso = data1[:,9]
+    Data_Fiber2G = data2[:,9]
+    Data_Fiber2R = data3[:,11]
+
+elif bool(glob.glob(AnalDir + os.sep + "FIP_DataG*")) == True:
+    PMts= data2[:,0]
+    Data_Fiber1iso = data1[:,1]
+    Data_Fiber1G = data2[:,1]
+    Data_Fiber1R = data3[:,1]
+     
+    Data_Fiber2iso = data1[:,2]
+    Data_Fiber2G = data2[:,2]
+    Data_Fiber2R = data3[:,2]
+    
+time_seconds = np.arange(len(Data_Fiber1iso)) /sampling_rate 
+    
+# Visualizing raw data (still including excitation-off )
+plt.figure()
+plt.subplot(2,1,1)
+plt.plot(time_seconds, Data_Fiber1G, 'g', label='G1')
+plt.plot(time_seconds, Data_Fiber1R, 'r', label='R1')
+plt.plot(time_seconds, Data_Fiber1iso, 'b', label='iso1')
+plt.xlabel('Time (seconds)')
+plt.ylabel('CMOS Signal')
+plt.title('Raw signals:ROI1')
+plt.legend()
+plt.subplot(2,1,2)
+plt.plot(time_seconds, Data_Fiber2G, 'g', label='G2')
+plt.plot(time_seconds, Data_Fiber2R, 'r', label='R2')
+plt.plot(time_seconds, Data_Fiber2iso, 'b', label='iso2')
+plt.xlabel('Time (seconds)')
+plt.ylabel('CMOS Signal')
+plt.title('Raw signals:ROI2')
+plt.legend()
 
 #%% From here to be multiplexed
 
@@ -134,8 +176,8 @@ G1_denoised = medfilt(G1_raw, kernel_size=kernelSize)
 G2_denoised = medfilt(G2_raw, kernel_size=kernelSize)
 R1_denoised = medfilt(R1_raw, kernel_size=kernelSize)
 R2_denoised = medfilt(R2_raw, kernel_size=kernelSize)
-Ctrl1_denoised = medfilt(Ctrl1_raw, kernel_size=5)
-Ctrl2_denoised = medfilt(Ctrl2_raw, kernel_size=5)
+Ctrl1_denoised = medfilt(Ctrl1_raw, kernel_size=kernelSize)
+Ctrl2_denoised = medfilt(Ctrl2_raw, kernel_size=kernelSize)
  
 # Lowpass filter - zero phase filtering (with filtfilt) is used to avoid distorting the signal.
 b,a = butter(2, 9, btype='low', fs=sampling_rate)
@@ -145,7 +187,6 @@ R1_denoised = filtfilt(b,a, R1_denoised)
 R2_denoised = filtfilt(b,a, R2_denoised)
 Ctrl1_denoised = filtfilt(b,a, Ctrl1_denoised)
 Ctrl2_denoised = filtfilt(b,a, Ctrl2_denoised)
-plt.legend()
 
 plt.figure()
 plt.subplot(2,1,1)
@@ -153,6 +194,7 @@ plt.plot(time_seconds, G1_denoised, 'g', label='G1 denoised')
 plt.plot(time_seconds, R1_denoised, 'r', label='R1 denoised')
 plt.plot(time_seconds, Ctrl1_denoised, 'b', label='iso1 denoised') 
 plt.title('Denoised signals:ROI1')
+plt.tight_layout()
 plt.legend()
 
 plt.subplot(2,1,2)
@@ -203,8 +245,8 @@ G1_parms, parm_cov1 = curve_fit(biexpF, time_seconds, G1_denoised, p0=BiExpFitIn
 G1_expfit = biexpF(time_seconds, *G1_parms)
 G2_parms, parm_cov2 = curve_fit(biexpF, time_seconds, G2_denoised, p0=BiExpFitIni,maxfev=5000)
 G2_expfit = biexpF(time_seconds, *G2_parms)
-R1_parms, parm_cov1 = curve_fit(biexpF, time_seconds, R1_denoised, p0=BiExpFitIni,maxfev=5000)
-R1_expfit = biexpF(time_seconds, *R1_parms)
+#R1_parms, parm_cov1 = curve_fit(biexpF, time_seconds, R1_denoised, p0=BiExpFitIni,maxfev=5000)
+#R1_expfit = biexpF(time_seconds, *R1_parms)
 R2_parms, parm_cov2 = curve_fit(biexpF, time_seconds, R2_denoised, p0=BiExpFitIni,maxfev=5000)
 R2_expfit = biexpF(time_seconds, *R2_parms)
 
@@ -220,7 +262,7 @@ plt.plot(time_seconds, G1_denoised, 'g', label='G1_denoised')
 plt.plot(time_seconds, R1_denoised, 'r', label='R1_denoised')
 plt.plot(time_seconds, Ctrl1_denoised, 'b', label='iso1_denoised')
 plt.plot(time_seconds, G1_expfit,'k', linewidth=1.5) 
-plt.plot(time_seconds, R1_expfit,'k', linewidth=1.5) 
+#plt.plot(time_seconds, R1_expfit,'k', linewidth=1.5) 
 plt.plot(time_seconds, Ctrl1_expfit,'k', linewidth=1.5) 
 plt.title('Bi-exponential fit to bleaching.')
 plt.xlabel('Time (seconds)');
@@ -237,7 +279,7 @@ plt.xlabel('Time (seconds)');
 
 G1_es = G1_denoised - G1_expfit
 G2_es = G2_denoised - G2_expfit
-R1_es = R1_denoised - R1_expfit
+#R1_es = R1_denoised - R1_expfit
 R2_es = R2_denoised - R2_expfit
 Ctrl1_es = Ctrl1_denoised - Ctrl1_expfit
 Ctrl2_es = Ctrl2_denoised - Ctrl2_expfit
@@ -245,7 +287,7 @@ Ctrl2_es = Ctrl2_denoised - Ctrl2_expfit
 plt.figure()
 plt.subplot(1,2,1)
 plt.plot(time_seconds, G1_es, 'g', label='G1')
-plt.plot(time_seconds, R1_es, 'r', label='R1')
+#plt.plot(time_seconds, R1_es, 'r', label='R1')
 plt.plot(time_seconds, Ctrl1_es, 'b', label='iso1')
 plt.title('Bleaching correction by subtraction of biexponential fit')
 plt.xlabel('Time (seconds)');
@@ -296,6 +338,8 @@ plt.plot(time_seconds, Ctrl2_polyfit,'k', linewidth=1.5)
 plt.title('polyfit ROI2')
 plt.xlabel('Time (seconds)');
 
+
+# "_es for fitted curved subtracted signals"
 G1_es = G1_denoised - G1_polyfit
 G2_es = G2_denoised - G2_polyfit
 R1_es = R1_denoised - R1_polyfit
@@ -308,6 +352,7 @@ plt.subplot(2,1,1)
 plt.plot(time_seconds, Ctrl1_es, 'b', label='iso1_estim')
 plt.plot(time_seconds, G1_es, 'g', label='G1_estim')
 plt.plot(time_seconds, R1_es, 'r', label='R1_estim')
+plt.title('polyfit ROI1')
 
 plt.subplot(2,1,2)
 plt.plot(time_seconds, Ctrl2_es, 'b', label='iso2_estim')
@@ -393,7 +438,7 @@ print('R-squaredR1: {:.3f}'.format(r_valueR1**2))
 print('SlopeR2    : {:.3f}'.format(slopeR2))
 print('R-squaredR2: {:.3f}'.format(r_valueR2**2))
 
-#% motion corrected
+#% motion corrected ("corrected" currently not used to be conservative)
 G1_est_motion = interceptG1 + slopeG1 * Ctrl1_es
 G1_corrected = G1_es - G1_est_motion
 G2_est_motion = interceptG2 + slopeG2 * Ctrl2_es
@@ -408,7 +453,7 @@ plt.figure()
 plt.subplot(2,2,1)
 plt.plot(time_seconds, G1_es , label='G1 - pre motion correction')
 plt.plot(time_seconds, G1_corrected, 'g', label='G1 - motion corrected')
-plt.plot(time_seconds, G1_est_motion - 0.001, 'y', label='estimated motion')
+plt.plot(time_seconds, G1_est_motion, 'y', label='estimated motion')
 plt.xlabel('Time (seconds)')
 plt.title('Motion correction G1')
 plt.legend()
@@ -416,7 +461,7 @@ plt.legend()
 plt.subplot(2,2,2)
 plt.plot(time_seconds, G2_es , label='G2 - pre motion correction')
 plt.plot(time_seconds, G2_corrected, 'g', label='G2 - motion corrected')
-plt.plot(time_seconds, G2_est_motion - 0.001, 'y', label='estimated motion')
+plt.plot(time_seconds, G2_est_motion, 'y', label='estimated motion')
 plt.xlabel('Time (seconds)')
 plt.title('Motion correction G2')
 plt.legend()
@@ -424,7 +469,7 @@ plt.legend()
 plt.subplot(2,2,3)
 plt.plot(time_seconds, R1_es , label='R1 - pre motion correction')
 plt.plot(time_seconds, R1_corrected, 'r', label='R1 - motion corrected')
-plt.plot(time_seconds, R1_est_motion - 0.001, 'y', label='estimated motion')
+plt.plot(time_seconds, R1_est_motion, 'y', label='estimated motion')
 plt.xlabel('Time (seconds)')
 plt.title('Motion correction R1')
 plt.legend()
@@ -432,14 +477,14 @@ plt.legend()
 plt.subplot(2,2,4)
 plt.plot(time_seconds, R2_es , label='R2 - pre motion correction')
 plt.plot(time_seconds, R2_corrected, 'r', label='R2 - motion corrected')
-plt.plot(time_seconds, R2_est_motion - 0.001, 'y', label='estimated motion')
+plt.plot(time_seconds, R2_est_motion, 'y', label='estimated motion')
 plt.xlabel('Time (seconds)')
 plt.title('Motion correction R2')
 plt.legend()
 
 plt.tight_layout()
 
-#%% dF/F using sliding baseline
+#%% Calculating sliding baseline for dFF
 b,a = butter(2, 0.0001, btype='low', fs=sampling_rate)
 G1_baseline = filtfilt(b,a, G1_denoised, padtype='even')
 G2_baseline = filtfilt(b,a, G2_denoised, padtype='even')
@@ -449,6 +494,25 @@ R2_baseline = filtfilt(b,a, R2_denoised, padtype='even')
 Ctrl1_baseline = filtfilt(b,a, Ctrl1_denoised, padtype='even')
 Ctrl2_baseline = filtfilt(b,a, Ctrl2_denoised, padtype='even')
 
+plt.figure()
+plt.subplot(2,1,1)
+plt.plot(time_seconds, G1_baseline, 'g', label='baselineG1')
+plt.plot(time_seconds, R1_baseline, 'r', label='baselineR1')
+plt.plot(time_seconds, Ctrl1_baseline,'b', label='baselineCtrl1')
+plt.xlabel('Time (seconds)')
+plt.title('sliding baseline')
+plt.legend()
+
+plt.subplot(2,1,2)
+plt.plot(time_seconds, G2_baseline, 'g', label='baselineG2')
+plt.plot(time_seconds, R2_baseline, 'r', label='baselineR2')
+plt.plot(time_seconds, Ctrl2_baseline,'b', label='baselineCtrl2')
+plt.xlabel('Time (seconds)')
+plt.title('sliding baseline')
+plt.legend()
+plt.tight_layout()
+
+#%% dF/F calculation (note using _es insted of corrected)
 #G1_dF_F = G1_corrected/G1_baseline
 G1_dF_F = G1_es/G1_baseline
 sort = np.sort(G1_dF_F)
@@ -484,7 +548,7 @@ b_median = np.median(sort[0:round(len(sort) * b_percentile)])
 Ctrl2_dF_F = Ctrl2_dF_F - b_median
 
 
-#%%
+#%% fixing the cropped length by filling 
 G1_dF_F = np.append(np.ones([nFrame2cut,1])*G1_dF_F[0],G1_dF_F)
 G2_dF_F = np.append(np.ones([nFrame2cut,1])*G2_dF_F[0],G2_dF_F)
 R1_dF_F = np.append(np.ones([nFrame2cut,1])*R1_dF_F[0],R1_dF_F)
@@ -546,6 +610,9 @@ plt.title('Ctrl2 dF/F')
 plt.grid(True)
 plt.tight_layout()
 
+
+
+
 #%% Save
 np.save(AnalDir + os.sep + "G1_dF_F", G1_dF_F)
 np.save(AnalDir + os.sep + "G2_dF_F", G2_dF_F)
@@ -554,7 +621,8 @@ np.save(AnalDir + os.sep + "R2_dF_F", R2_dF_F)
 np.save(AnalDir + os.sep + "Ctrl1_dF_F", Ctrl1_dF_F)
 np.save(AnalDir + os.sep + "Ctrl2_dF_F", Ctrl2_dF_F)
 
-
+if bool(glob.glob(AnalDir + os.sep + "FIP_DataG*")) == True:
+    np.save(AnalDir + os.sep + "PMts", PMts)
 
 
 #%%
@@ -617,6 +685,6 @@ plt.plot(time_seconds, G2_dF_F*100, 'red')
 np.corrcoef(G1_dF_F, G2_dF_F)
 np.corrcoef(R1_dF_F, R2_dF_F)
 
-G1norm
+
 
 
