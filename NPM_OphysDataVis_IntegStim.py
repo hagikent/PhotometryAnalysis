@@ -16,46 +16,30 @@ import numpy as np
 import csv
 import glob
 from scipy.optimize import curve_fit
-import json
 
 import PreprocessingFunctions as pf
 
-AnalDir = r"F:\photometry_FIPopt\230428\664627"
-AnalDir = r"F:\photometry_FIPopt\230428\664629"
-AnalDir = r"F:\photometry_FIPopt\230428\669479"
-#AnalDir = r"F:\photometry_FIPopt\230428\669485"
+AnalDir = r"F:\IntegratedStim_temp\230505\test2_2fibers"
 
-FiberROI = 1 #1:Fiber1, 2:Fiber2
+#Params
+nFibers = 2
+nColor = 3
 
-# params for pre-processing
 nFrame2cut = 100  #crop initial n frames
 sampling_rate = 20 #individual channel (not total)
 kernelSize = 1 #median filter
 degree = 4 #polyfit
 b_percentile = 0.70 #To calculare F0, median of bottom x%
-
-# reading opto_stim.json for stimulation params
-if bool(glob.glob(AnalDir + os.sep + "*opto_stim.json")) == True:
-    stimfile  = glob.glob(AnalDir + os.sep + "*opto_stim.json")[0]
-    
-    with open(stimfile) as file:
-        dict = json.load(file)
-    
-    base = dict["baseline_duration"]
-    trialN = dict["number_pulse_trains"]
-    StimPeirod = dict["pulse_train_duration"] 
-    ITI = dict["pulse_train_interval"]
-    
-else:
-    base = 120 #sec, set mannially if you do not have opto_stim.json
-    trialN = 40 #
-    StimPeriod = 2 #sec
-    ITI = 28 #sec
+base = 120 #sec
+trialN = 10 #
+StimPeriod = 2 #sec
+ITI = 28 #sec
 
 #%% read files
-file1  = glob.glob(AnalDir + os.sep + "FIP_DataIso*")[0]
-file2 = glob.glob(AnalDir + os.sep + "FIP_DataG*")[0]
-file3 = glob.glob(AnalDir + os.sep + "FIP_DataR*")[0]
+file1  = glob.glob(AnalDir + os.sep + "Signal*")[0]
+file2 = glob.glob(AnalDir + os.sep + "Iso_*")[0]
+file3 = glob.glob(AnalDir + os.sep + "Stim_*")[0]
+
 
 with open(file1) as f:
     reader = csv.reader(f)
@@ -83,12 +67,12 @@ data2 = data2[0:Length]
 data3 = data3[0:Length]
 
 PMts= data2[:,0]
-Data_Fiber1iso = data1[:,1]
-Data_Fiber1G = data2[:,1]
+Data_Fiber1G = data1[:,1]
+Data_Fiber1iso = data2[:,1]
 Data_Fiber1R = data3[:,1]
      
-Data_Fiber2iso = data1[:,2]
-Data_Fiber2G = data2[:,2]
+Data_Fiber2G = data1[:,2]
+Data_Fiber2iso = data2[:,2]
 Data_Fiber2R = data3[:,2]
 
 #%% Preprocess
@@ -99,13 +83,6 @@ R1_dF_F = pf.tc_preprocess(Data_Fiber1R, nFrame2cut, kernelSize, sampling_rate, 
 Ctrl2_dF_F = pf.tc_preprocess(Data_Fiber2iso, nFrame2cut, kernelSize, sampling_rate, degree, b_percentile)
 G2_dF_F = pf.tc_preprocess(Data_Fiber2G, nFrame2cut, kernelSize, sampling_rate, degree, b_percentile)
 R2_dF_F = pf.tc_preprocess(Data_Fiber2R, nFrame2cut, kernelSize, sampling_rate, degree, b_percentile)
-
-if FiberROI == 1:
-    G_dF_F = G1_dF_F
-    Ctrl_dF_F = Ctrl1_dF_F
-elif FiberROI == 2:
-    G_dF_F = G2_dF_F
-    Ctrl_dF_F = Ctrl2_dF_F  
 
 '''
 tc_cropped = pf.tc_crop(Data_Fiber1G, nFrame2cut)
@@ -118,7 +95,7 @@ tc_dFoF = pf.tc_dFF(tc_filtered, tc_base, b_percentile)
 tc_dFoF = pf.tc_filling(tc_dFoF, nFrame2cut)
 '''
 #%% 
-time_seconds = np.arange(len(G_dF_F)) /sampling_rate
+time_seconds = np.arange(len(G1_dF_F)) /sampling_rate
 
 OptoStim = np.arange(trialN) * (StimPeriod + ITI) + base
 OptoStim = OptoStim * sampling_rate  #sec * Hz
@@ -158,17 +135,33 @@ if bool(glob.glob(AnalDir + os.sep + "PupilTracking*")) == True:
     data_EyeCam_time = (data_EyeCam_time - data_EyeCam_time[0])/1000 #ms to s 
 
 #%%
-gs = gridspec.GridSpec(6,8)
+gs = gridspec.GridSpec(8,8, wspace=1, hspace=0.5)
 plt.figure(figsize=(20, 8))
 plt.subplot(gs[0:2, 0:8])
 
-plt.plot(time_seconds, Ctrl_dF_F*100, 'blue', label='Iso_Ctrl')
-plt.plot(time_seconds, G_dF_F*100, 'green', label='Green_Signal')
-#lt.plot(time_seconds, R1_dF_F*100, 'magenta', label='R_artifact')
+plt.plot(time_seconds, Ctrl1_dF_F*100, 'blue', label='Iso_Ctrl')
+plt.plot(time_seconds, G1_dF_F*100, 'olive', label='GCaMP_Signal')
+#plt.plot(time_seconds, R1_dF_F*100, 'magenta', label='R_artifact')
 plt.plot(time_seconds, np.zeros(len(time_seconds)),'--k')
 plt.xlabel('Time (seconds)')
 plt.ylabel('dF/F (%)')
-plt.title("Whole Trace   SubjectID: " + os.path.basename(AnalDir))
+plt.title("StimFiber  SubjectID: " + os.path.basename(AnalDir))
+plt.legend()
+plt.xlim([0, time_seconds[-1]])
+plt.grid(True)
+
+for ii in range(trialN):
+    plt.axvspan(base + (StimPeriod + ITI)*ii, base + StimPeriod + (StimPeriod + ITI)*ii, color = [1, 0, 1, 0.4])
+
+plt.subplot(gs[3:5, 0:8])
+
+plt.plot(time_seconds, Ctrl2_dF_F*100, 'blue', label='Iso_Ctrl')
+plt.plot(time_seconds, G2_dF_F*100, 'green', label='GreenSensor_Signal')
+#plt.plot(time_seconds, R2_dF_F*100, 'magenta', label='R_artifact')
+plt.plot(time_seconds, np.zeros(len(time_seconds)),'--k')
+plt.xlabel('Time (seconds)')
+plt.ylabel('dF/F (%)')
+plt.title("Sensor  SubjectID: " + os.path.basename(AnalDir))
 plt.legend()
 plt.xlim([0, time_seconds[-1]])
 plt.grid(True)
@@ -178,14 +171,14 @@ for ii in range(trialN):
 
 
 if bool(glob.glob(AnalDir + os.sep + "RunningSpeed*")) == True:
-    plt.subplot(gs[2, 0:8])
+    plt.subplot(gs[4, 0:8])
     plt.plot(data_RS_time, data_RS[:,1], color=[0.4, 0.4, 0.4])
     plt.ylabel('A.U.')
     plt.xlim([0, time_seconds[-1]])
     plt.title('Running Wheel Movement')
     
 if bool(glob.glob(AnalDir + os.sep + "PupilTracking*")) == True:
-    plt.subplot(gs[3, 0:8])
+    plt.subplot(gs[5, 0:8])
     plt.plot(data_EyeCam_time, data_Pupil, color=[0.4, 0.4, 0.4])   
     plt.ylabel('pixel')
     plt.xlim([0, time_seconds[-1]])
@@ -228,7 +221,7 @@ def PSTHplot(PSTH, MainColor, SubColor, LabelStr):
 
 def PSTH_baseline(PSTH, preW):
     
-    for ii in range(np.shape(Psth_G)[0]):
+    for ii in range(np.shape(Psth_G1)[0]):
         
         Trace_this = PSTH[ii, :]
         Trace_this_base = Trace_this[0:preW]
@@ -242,18 +235,27 @@ def PSTH_baseline(PSTH, preW):
     return PSTHbase
 
 #%%
-Psth_G = PSTHmaker(G_dF_F*100, OptoStim, 100, 300)
-Psth_C = PSTHmaker(Ctrl_dF_F*100, OptoStim, 100, 300)
-Psth_G_base = PSTH_baseline(Psth_G, 100)
-Psth_C_base = PSTH_baseline(Psth_C, 100)    
+Psth_G1 = PSTHmaker(G1_dF_F*100, OptoStim, 100, 300)
+Psth_C1 = PSTHmaker(Ctrl1_dF_F*100, OptoStim, 100, 300)
+Psth_G1_base = PSTH_baseline(Psth_G1, 100)
+Psth_C1_base = PSTH_baseline(Psth_C1, 100)
 
-plt.subplot(gs[4:6, 0:2])
+Psth_G2 = PSTHmaker(G2_dF_F*100, OptoStim, 100, 300)
+Psth_C2 = PSTHmaker(Ctrl2_dF_F*100, OptoStim, 100, 300)
+Psth_G2_base = PSTH_baseline(Psth_G2, 100)
+Psth_C2_base = PSTH_baseline(Psth_C2, 100)
+
+plt.subplot(gs[6:8, 0:2])
 preW=100
 sampling_rate=20
 
-PSTHplot(Psth_G, "g", "darkgreen", "Green_signal")
-PSTHplot(Psth_C, "b", "darkblue", "Iso_Ctrl")
-ymax = np.max([np.max(np.mean(Psth_G,axis=0))+1,5]) 
+PSTHplot(Psth_G1, "olive", "darkolivegreen", "GCaMP")
+PSTHplot(Psth_C1, "aqua", "teal", "Iso_G")
+PSTHplot(Psth_G2, "g", "darkgreen", "Green_Sensor")
+PSTHplot(Psth_C2, "b", "darkblue", "Iso_Sensor")
+
+
+ymax = np.max([np.max(np.mean(Psth_G1,axis=0))+1,5]) 
 plt.ylim([-5, np.max([ymax+1, 5])])
 plt.xlim([-5,15])
 plt.legend()
@@ -264,14 +266,16 @@ plt.ylabel('dF/F (%)')
 plt.axvspan(0, 2, color = [1, 0, 1, 0.4])
 
 #%%
-plt.subplot(gs[4:6, 2:4])
+plt.subplot(gs[6:8, 2:4])
 
-PSTHplot(Psth_G_base, "g", "darkgreen", "Green_signal")
-PSTHplot(Psth_C_base, "b", "darkblue", "Iso_Ctrl")
-ymax = np.max([np.max(np.mean(Psth_G,axis=0))+1,5]) 
+PSTHplot(Psth_G1_base, "olive", "darkolivegreen", "GCaMP")
+PSTHplot(Psth_C1_base, "aqua", "teal", "Iso_GCaMP")
+PSTHplot(Psth_G2_base, "g", "darkgreen", "Green_Sensor")
+PSTHplot(Psth_C2_base, "b", "darkblue", "Iso_Sensor")
+ymax = np.max([np.max(np.mean(Psth_G1,axis=0))+1,5]) 
 plt.ylim([-5, np.max([ymax+5, 5])])
 plt.xlim([-5,15])
-plt.legend()
+#plt.legend()
 plt.grid(True)
 plt.title("LocalBase_subtracted, Mean+-SEM")
 plt.xlabel('Time (seconds) from StimOnsets')
@@ -287,10 +291,10 @@ def exponential_func(x, a, b, c):
 
 # Generate some data
 x_data_a = np.linspace(0, 2, 40)
-y_data_a = np.mean(Psth_G[:, 100:140].T,axis=1)
+y_data_a = np.mean(Psth_G2[:, 100:140].T,axis=1)
 
 x_data_d = np.linspace(0, 7, 140)
-y_data_d = np.mean(Psth_G[:, 140:280].T,axis=1)
+y_data_d = np.mean(Psth_G2[:, 140:280].T,axis=1)
 
 try:
     # Fit the data with the exponential function
@@ -303,14 +307,14 @@ try:
 
 
     # Plot the data and the fitted function
-    plt.subplot(gs[4:6, 5:6])
+    plt.subplot(gs[6:8, 5:6])
     plt.plot(x_data_a, y_data_a)
     plt.plot(x_data_a, exponential_func(x_data_a, *popt_a), 'r-')
     plt.title("Rise_ExpFit  b:" + "{:.2f}".format(popt_a[1]))
     plt.xlabel("s")
     plt.ylabel("dF/F")
 
-    plt.subplot(gs[4:6, 6:8])
+    plt.subplot(gs[6:8, 6:8])
     plt.plot(x_data_d, y_data_d)
     plt.plot(x_data_d, exponential_func(x_data_d, *popt_d), 'r-')
     plt.title("Decay_ExpFit  b:" + "{:.2f}".format(popt_d[1]) + "  half-time:" + "{:.2f}".format(np.log(2)/popt_d[1]) + "s")

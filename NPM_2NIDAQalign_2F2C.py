@@ -73,6 +73,17 @@ AnalDir = r"F:\photometry_FIP2\230425\KH_FB85"
 
 AnalDir = r"F:\photometry_FIP3\230425\KH_FB82_test"
 
+AnalDir = r"F:\photometry_FIP3\230501\KH_FB85" #motion
+AnalDir = r"F:\photometry_FIP3\230501\663290" #LC/LCN
+AnalDir = r"F:\photometry_FIP2\230501\KH_FB81"#NG
+AnalDir = r"F:\photometry_FIP2\230501\666636"#no
+AnalDir = r"F:\photometry_NPM\230501\665709" 
+AnalDir = r"F:\photometry_NPM\230501\KH_FB84"
+
+AnalDir = r"F:\photometry_NPM\230207\KH_FB67"
+AnalDir = r"F:\photometry_FIP2\230130\KH_FB61" #motion+
+AnalDir = r"F:\photometry_FIP\230210\KH_FB66"
+
 FlagNoRawLick = 0
 
 Trace0 = np.load(glob.glob(AnalDir + os.sep + "G1_dF_F.npy")[0])
@@ -548,29 +559,31 @@ for ii in range(np.size(Traces,1)):
     plt.savefig(AnalDir + os.sep + "Fig_PSTH_Cue" + str(ii) + ".png")
 
     #% Ignored
-    fig=plt.figure(figsize=(8, 4))
-    fig.canvas.set_window_title('Ignored  ROI#' + str(ii))
-    plt.subplot(1,2,1)
-    PSTHplot(PSTH_Ignored, "k", "gray", "IgnoredTrials")
-    ymax = np.max([np.max(np.mean(PSTH_CueRewarded,axis=0))+1,5]) 
-    plt.ylim([-1,ymax])
-    plt.xlim([-5,10])
-    plt.legend()
-    plt.grid(True)
-    plt.title("CueTriggered")
-    plt.xlabel('Time (seconds)')
-    plt.ylabel('dF/F (%)')
+    try:
+        fig=plt.figure(figsize=(8, 4))
+        fig.canvas.set_window_title('Ignored  ROI#' + str(ii))
+        plt.subplot(1,2,1)
+        PSTHplot(PSTH_Ignored, "k", "gray", "IgnoredTrials")
+        ymax = np.max([np.max(np.mean(PSTH_CueRewarded,axis=0))+1,5]) 
+        plt.ylim([-1,ymax])
+        plt.xlim([-5,10])
+        plt.legend()
+        plt.grid(True)
+        plt.title("CueTriggered")
+        plt.xlabel('Time (seconds)')
+        plt.ylabel('dF/F (%)')
 
-    plt.subplot(1,2,2)
-    plt.imshow(PSTH_Ignored,vmin=-0.5,vmax=ymax)
-    plt.xticks(ticks=[0, 50, 100,150,200,250,300], labels=['-5', '-2.5','0','2.5','5','7.5','10'])
-    plt.xlabel('sec from Cue')
-    plt.ylabel('trials')
-    plt.colorbar(shrink=0.5)
-    plt.axvline(x=100,color='white',linestyle='--')
-    plt.title("CueTriggered_`Ignored")
-    plt.savefig(AnalDir + os.sep + "Fig_PSTH_Ignored" + str(ii) + ".png")
-
+        plt.subplot(1,2,2)
+        plt.imshow(PSTH_Ignored,vmin=-0.5,vmax=ymax)
+        plt.xticks(ticks=[0, 50, 100,150,200,250,300], labels=['-5', '-2.5','0','2.5','5','7.5','10'])
+        plt.xlabel('sec from Cue')
+        plt.ylabel('trials')
+        plt.colorbar(shrink=0.5)
+        plt.axvline(x=100,color='white',linestyle='--')
+        plt.title("CueTriggered_`Ignored")
+        plt.savefig(AnalDir + os.sep + "Fig_PSTH_Ignored" + str(ii) + ".png")
+    except:
+        print("no ignored trials")
 ### end of plotting loop
 
 #%% Early Middle Late plotting loop

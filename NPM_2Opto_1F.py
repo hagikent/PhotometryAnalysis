@@ -309,6 +309,18 @@ except RuntimeError:
     print("exp curve fitting failed. Skipped")
 
 
+#%% dataframe
+
+
+
+
+
+
+
+
+
+
+
 
 
 

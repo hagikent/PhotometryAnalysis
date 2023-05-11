@@ -35,7 +35,7 @@ import glob
 plt.close('all')
 
 #Win
-AnalDir = r"F:\photometry_FIP3\230425\KH_FB82_test"
+AnalDir = r"F:\photometry_FIPopt\230428\669485"
 
 
 nFibers = 2
