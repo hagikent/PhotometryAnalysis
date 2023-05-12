@@ -13,8 +13,10 @@ import os
 import matplotlib.pyplot as plt
 import matplotlib.gridspec as gridspec
 import numpy as np
+import pandas as pd
 import csv
 import glob
+import json
 from scipy.optimize import curve_fit
 
 import PreprocessingFunctions as pf
@@ -48,13 +50,15 @@ import PreprocessingFunctions as pf
 #AnalDir3 =r"F:\Data_230504reorg\fpFIP_669469-o-15000_2023-04-21_14-39-37"
 #AnalDir4 =r"F:\Data_230504reorg\fpFIP_669469-p-15000_2023-04-21_15-04-05"
 
-#669472/669473(no 5/10/20Hz...)
-#230412
+#669472 (no 5/10/20Hz...)
 #AnalDir0 =r"F:\Data_230504reorg\fpFIP_669472_2023-04-12_16-25-03"
 #AnalDir1 =r"F:\Data_230504reorg\fpFIP_669472-GBR-10mg_2023-04-12_16-57-02"
 
+#669473 (no 5/10/20Hz...)
 #AnalDir0 =r"F:\Data_230504reorg\fpFIP_669473_2023-04-12_17-28-30"
 #AnalDir1 =r"F:\Data_230504reorg\fpFIP_669473-GBR-10mg_2023-04-12_17-59-28"
+
+#_______
 
 #664627 3A8-NAc
 #AnalDir0 = r"F:\Data_230504reorg\fpFIP_664627_2023-04-28_15-26-57" #GBR- 20Hz 15ms
@@ -92,11 +96,11 @@ AnalDir3 = r"F:\photometry_FIPopt\230509\FIP_673056_2023-05-09_14-47-14"
 AnalDir4 = r"F:\photometry_FIPopt\230509\FIP_673056_2023-05-09_15-11-28"
 
 #664630 3A6-NA/BLA (temp_loc)
-AnalDir0 = r"F:\photometry_FIPopt\230509\FIP_664630_2023-05-09_17-00-29"
-AnalDir1 = r"F:\photometry_FIPopt\230509\FIP_664630_2023-05-09_17-30-14"
-AnalDir2 = r"F:\photometry_FIPopt\230509\FIP_664630_2023-05-09_16-10-44"
-AnalDir3 = r"F:\photometry_FIPopt\230509\FIP_664630_2023-05-09_16-36-42"
-AnalDir4 = r"F:\photometry_FIPopt\230509\FIP_664630_2023-05-09_17-00-29"
+#AnalDir0 = r"F:\photometry_FIPopt\230509\FIP_664630_2023-05-09_17-00-29"
+#AnalDir1 = r"F:\photometry_FIPopt\230509\FIP_664630_2023-05-09_17-30-14"
+#AnalDir2 = r"F:\photometry_FIPopt\230509\FIP_664630_2023-05-09_16-10-44"
+#AnalDir3 = r"F:\photometry_FIPopt\230509\FIP_664630_2023-05-09_16-36-42"
+#AnalDir4 = r"F:\photometry_FIPopt\230509\FIP_664630_2023-05-09_17-00-29"
 
 #664631 3A6-NA/BLA (temp_loc)
 #AnalDir0 = r"F:\photometry_FIPopt\230509\FIP_664631_2023-05-09_19-03-32"
@@ -106,15 +110,20 @@ AnalDir4 = r"F:\photometry_FIPopt\230509\FIP_664630_2023-05-09_17-00-29"
 #AnalDir4 = r"F:\photometry_FIPopt\230509\FIP_664631_2023-05-09_19-03-32"
 
 
-
 SaveDir = "F:\Analysis\FIP_opto\dLight3paper"
 
+FiberROI = 1 #1:Fiber1, 2:Fiber2
 
+nFrame2cut = 100  #crop initial n frames
+sampling_rate = 20 #individual channel (not total)
+kernelSize = 1 #median filter
+degree = 4 #polyfit
+b_percentile = 0.70 #To calculare F0, median of bottom x%
+#%%
 AnalDirAll = [AnalDir0, AnalDir1]
 
 if 'AnalDir2' in locals():
     AnalDirAll = [AnalDir0, AnalDir1, AnalDir2, AnalDir3, AnalDir4]
-
 
 Psth_G_baseAll = []
 Psth_C_baseAll = []
@@ -123,22 +132,28 @@ dFFmaxAll = []
 Ctrl_dF_FAll = []
 G_dF_FAll = []
 
+#%% main loop
 for ii_dir in range(len(AnalDirAll)):
 
     AnalDir = AnalDirAll[ii_dir]
-
-    #Params
-    FiberROI = 1 #1:Fiber1, 2:Fiber2
     
-    nFrame2cut = 100  #crop initial n frames
-    sampling_rate = 20 #individual channel (not total)
-    kernelSize = 1 #median filter
-    degree = 4 #polyfit
-    b_percentile = 0.70 #To calculare F0, median of bottom x%
-    base = 120 #sec
-    trialN = 40 #
-    StimPeriod = 2 #sec
-    ITI = 28 #sec
+    # reading opto_stim.json for stimulation params
+    if bool(glob.glob(AnalDir + os.sep + "*opto_stim.json")) == True:
+        stimfile  = glob.glob(AnalDir + os.sep + "*opto_stim.json")[0]
+        
+        with open(stimfile) as file:
+            dict = json.load(file)
+        
+        base = dict["baseline_duration"]
+        trialN = dict["number_pulse_trains"]
+        StimPeriod = dict["pulse_train_duration"] 
+        ITI = dict["pulse_train_interval"]
+        
+    else:
+        base = 120 #sec, set mannially if you do not have opto_stim.json
+        trialN = 40 #
+        StimPeriod = 2 #sec
+        ITI = 28 #sec
     
     #%% read files
     file1  = glob.glob(AnalDir + os.sep + "FIP_DataIso*")[0]
@@ -417,8 +432,9 @@ for ii_dir in range(len(AnalDirAll)):
     dFFmaxAll.append(np.max(np.mean(Psth_G_base, axis=0)))
     Ctrl_dF_FAll.append(Ctrl_dF_F)
     G_dF_FAll.append(G_dF_F)
+    
 
-#%%
+#%% single animal summary
 
 gs = gridspec.GridSpec(6,8, wspace=1, hspace=1)
 plt.figure(figsize=(20, 8))
@@ -461,8 +477,8 @@ plt.legend()
 
 
 plt.subplot(gs[4:6, 2:3])
-dFFtrials1 = np.max(Psth_G_baseAll[0][:,preW:preW + sampling_rate*StimPeriod],axis=1)
-dFFtrials2 = np.max(Psth_G_baseAll[1][:,preW:preW + sampling_rate*StimPeriod],axis=1)
+dFFtrials1 = np.max(Psth_G_baseAll[0][:,preW:preW + int(sampling_rate*StimPeriod)],axis=1)
+dFFtrials2 = np.max(Psth_G_baseAll[1][:,preW:preW + int(sampling_rate*StimPeriod)],axis=1)
 plt.scatter(np.ones([len(dFFtrials1),1]), dFFtrials1, c="green", s=3)
 plt.scatter(np.ones([len(dFFtrials2),1])*2, dFFtrials2, c="magenta", s=3)
 plt.errorbar(1.2, np.mean(dFFtrials1), yerr=np.std(dFFtrials1), fmt='o', color='green', ecolor='lightgray', elinewidth=3, capsize=2);
@@ -491,9 +507,9 @@ if 'AnalDir2' in locals():
     
     
     plt.subplot(gs[4:6, 6:7])
-    dFFtrials5 = np.max(Psth_G_baseAll[4][:,preW:preW + sampling_rate*StimPeriod],axis=1)
-    dFFtrials4 = np.max(Psth_G_baseAll[3][:,preW:preW + sampling_rate*StimPeriod],axis=1)
-    dFFtrials3 = np.max(Psth_G_baseAll[2][:,preW:preW + sampling_rate*StimPeriod],axis=1)
+    dFFtrials5 = np.max(Psth_G_baseAll[4][:,preW:preW + int(sampling_rate*StimPeriod)],axis=1)
+    dFFtrials4 = np.max(Psth_G_baseAll[3][:,preW:preW + int(sampling_rate*StimPeriod)],axis=1)
+    dFFtrials3 = np.max(Psth_G_baseAll[2][:,preW:preW + int(sampling_rate*StimPeriod)],axis=1)
     plt.scatter(np.ones([len(dFFtrials3),1]), dFFtrials3, c="olive", s=3)
     plt.scatter(np.ones([len(dFFtrials4),1])*2, dFFtrials4, c="darkorange", s=3)
     plt.scatter(np.ones([len(dFFtrials5),1])*3, dFFtrials5, c="g", s=3)
@@ -523,4 +539,11 @@ plt.title("Off-kinetics")
 
 #plt.savefig(SaveDir + os.sep + "AnimalSum_" + os.path.basename(AnalDir)[6:12] +".pdf")
 plt.savefig(SaveDir + os.sep + "AnimalSum_" + os.path.basename(AnalDir)[4:10] + "_Fiber_" + str(FiberROI) + ".pdf")
+
+#To dataflame
+df = pd.DataFrame([Psth_G_baseAll, Psth_C_baseAll, DecayTauAll, dFFmaxAll, Ctrl_dF_FAll, G_dF_FAll])
+df = df.T
+df = df.set_axis(['Psth_G', 'Psth_C', 'DecayTau', 'dFFmax','Ctrl_dF_F','G_dF_FAll'], axis='columns')
+
+
 

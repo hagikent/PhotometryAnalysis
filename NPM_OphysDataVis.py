@@ -43,7 +43,7 @@ if bool(glob.glob(AnalDir + os.sep + "*opto_stim.json")) == True:
     
     base = dict["baseline_duration"]
     trialN = dict["number_pulse_trains"]
-    StimPeirod = dict["pulse_train_duration"] 
+    StimPeriod = dict["pulse_train_duration"] 
     ITI = dict["pulse_train_interval"]
     
 else:
