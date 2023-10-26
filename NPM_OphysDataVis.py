@@ -24,6 +24,10 @@ AnalDir = r"F:\photometry_FIPopt\230428\664627"
 AnalDir = r"F:\photometry_FIPopt\230428\664629"
 AnalDir = r"F:\photometry_FIPopt\230428\669479"
 #AnalDir = r"F:\photometry_FIPopt\230428\669485"
+AnalDir = r"S:\KentaHagihara_InternalTransfer\DataTransfer_photometry_opto\231010\FIP_682498_2023-10-10_11-30-52"
+#AnalDir = r"S:\KentaHagihara_InternalTransfer\DataTransfer_photometry_opto\231010\FIP_682499_2023-10-10_13-46-04"
+AnalDir = r"S:\KentaHagihara_InternalTransfer\DataTransfer_photometry_opto\231019\FIP_689652_2023-10-19_16-33-07"
+
 
 FiberROI = 1 #1:Fiber1, 2:Fiber2
 

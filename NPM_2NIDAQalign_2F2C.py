@@ -84,6 +84,35 @@ AnalDir = r"F:\photometry_NPM\230207\KH_FB67"
 AnalDir = r"F:\photometry_FIP2\230130\KH_FB61" #motion+
 AnalDir = r"F:\photometry_FIP\230210\KH_FB66"
 
+AnalDir = r"F:\photometry_FIP3\230512\663290"
+AnalDir = r"F:\photometry_NPM\230512\KH_FB84"
+AnalDir = r"F:\photometry_FIP2\230526\666612"
+AnalDir = r"F:\photometry_NPM\230601\666612"
+AnalDir = r"F:\photometry_FIP2\230601\666610"
+AnalDir = r"S:\KentaHagihara_InternalTransfer\DataTransfer_photometry_FIP3\230605\666613"
+AnalDir = r"S:\KentaHagihara_InternalTransfer\DataTransfer_photometry_FIP3\230605\672208"
+
+#HA pilot
+AnalDir = r"F:\photometry_FIP2\230620\671245"
+#AnalDir = r"F:\photometry_FIP3\230620\671246"
+AnalDir = r"F:\photometry_FIP2\230622\671249"
+#AnalDir = r"F:\photometry_FIP3\230621\671250"
+
+#NE 23Aug
+AnalDir = r"F:\photometry_FIP3\230828\671632"
+AnalDir = r"F:\photometry_FIP3\230828\673594"
+AnalDir = r"F:\photometry_FIP2\230822\671631"
+AnalDir = r"F:\photometry_FIP2\230823\673593" #TTL not good
+AnalDir = r"F:\photometry_FIP2\230822\673593"
+
+#
+AnalDir = r"F:\Data\fpFIP_KH-FB51_2022-10-17_09-33-00"
+
+## last NE cohort
+AnalDir = r"S:\KentaHagihara_InternalTransfer\DataTransfer_photometry_FIP2_T4\230925\673595"
+#AnalDir = r"F:\photometry_FIP3\230925\676353"
+
+
 FlagNoRawLick = 0
 
 Trace0 = np.load(glob.glob(AnalDir + os.sep + "G1_dF_F.npy")[0])

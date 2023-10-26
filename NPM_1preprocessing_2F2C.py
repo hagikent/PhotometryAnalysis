@@ -35,8 +35,17 @@ import glob
 plt.close('all')
 
 #Win
-AnalDir = r"F:\photometry_FIPopt\230428\669485"
-
+AnalDir = r"F:\photometry_FIPopt\230623\FIP_679375_2023-06-23_14-09-00"
+AnalDir = r"F:\photometry_FIPopt\230623\FIP_679375_2023-06-23_14-32-13"
+AnalDir = r"F:\photometry_FIP3\230828\673594"
+AnalDir = r"F:\photometry_FIP2\230822\671631"
+AnalDir = r"F:\photometry_FIP2\230823\673593"
+AnalDir = r"F:\photometry_FIP2\230822\673593"
+AnalDir = r"F:\photometry_FIP3\230925\676353"
+#679375
+#680323
+#680324
+#682492
 
 nFibers = 2
 nColor = 3
