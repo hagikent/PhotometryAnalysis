@@ -18,7 +18,45 @@ import PreprocessingFunctions as pf
 #Bleaching/Stim 
 #AnalDir=r'S:\KentaHagihara_InternalTransfer\Integrated_Opto_Stim\231013\669748_p_15000_ITI118'
 #AnalDir=r'S:\KentaHagihara_InternalTransfer\Integrated_Opto_Stim\231013\682499_p_15000_ITI118'
-AnalDir=r'S:\KentaHagihara_InternalTransfer\Integrated_Opto_Stim\231013\686320_p_15000_ITI118'
+#AnalDir=r'S:\KentaHagihara_InternalTransfer\Integrated_Opto_Stim\231013\686320_p_15000_ITI118'
+
+AnalDir=r'S:\KentaHagihara_InternalTransfer\Integrated_Opto_Stim\240202\710414_p_15000'
+#AnalDir=r'S:\KentaHagihara_InternalTransfer\Integrated_Opto_Stim\240202\710415_p_15000'
+AnalDir=r'S:\KentaHagihara_InternalTransfer\Integrated_Opto_Stim\240208\710151_p_15000'
+AnalDir=r'S:\KentaHagihara_InternalTransfer\Integrated_Opto_Stim\240603\715324_p_15000'
+AnalDir=r'S:\KentaHagihara_InternalTransfer\Integrated_Opto_Stim\240604\715324_p_15000_10mW'
+AnalDir=r'S:\KentaHagihara_InternalTransfer\Integrated_Opto_Stim\240604\715324_p_15000_20mW'
+
+AnalDir=r'S:\KentaHagihara_InternalTransfer\Integrated_Opto_Stim\240604\715324_m_15000'
+AnalDir=r'S:\KentaHagihara_InternalTransfer\Integrated_Opto_Stim\240604\715324_m_15000_5mW'
+AnalDir=r'S:\KentaHagihara_InternalTransfer\Integrated_Opto_Stim\240604\715324_m_5000_5mW'
+#AnalDir=r'S:\KentaHagihara_InternalTransfer\Integrated_Opto_Stim\240604\715324_q_15000_5mW'
+
+#AnalDir=r'S:\KentaHagihara_InternalTransfer\Integrated_Opto_Stim\240604\715324_o_15000_5mW' # =reward
+#AnalDir=r'S:\KentaHagihara_InternalTransfer\Integrated_Opto_Stim\240604\715324_p_15000_5mW' # >reward
+AnalDir=r'S:\KentaHagihara_InternalTransfer\Integrated_Opto_Stim\240604\715324_q_5000_5mW'  # <reward
+#AnalDir=r'S:\KentaHagihara_InternalTransfer\Integrated_Opto_Stim\240604\715324_q_10000_5mW'
+
+AnalDir=r'S:\KentaHagihara_InternalTransfer\Integrated_Opto_Stim\240916\742440_p_15000'
+AnalDir=r'S:\KentaHagihara_InternalTransfer\Integrated_Opto_Stim\240830\742440_p_15000'
+AnalDir=r'S:\KentaHagihara_InternalTransfer\Integrated_Opto_Stim\240830\742958_p_15000'
+
+
+AnalDir=r'S:\KentaHagihara_InternalTransfer\Integrated_Opto_Stim\240830\734224_p_15000'
+AnalDir=r'S:\KentaHagihara_InternalTransfer\Integrated_Opto_Stim\240830\734225_p_15000'
+AnalDir=r'S:\KentaHagihara_InternalTransfer\Integrated_Opto_Stim\240830\730754_p_15000'
+
+AnalDir=r'S:\KentaHagihara_InternalTransfer\Integrated_Opto_Stim\240722\735928_p_15000_5mW'
+AnalDir=r'S:\KentaHagihara_InternalTransfer\Integrated_Opto_Stim\240722\735929_p_15000_5mW'
+
+
+#AnalDir=r'S:\KentaHagihara_InternalTransfer\Integrated_Opto_Stim\240722\727162_p_15000_5mW'
+AnalDir=r'S:\KentaHagihara_InternalTransfer\Integrated_Opto_Stim\240722\727163_p_15000_5mW'
+AnalDir=r'S:\KentaHagihara_InternalTransfer\Integrated_Opto_Stim\240722\727164_p_15000_5mW'
+#AnalDir=r'S:\KentaHagihara_InternalTransfer\Integrated_Opto_Stim\240722\730756_p_15000_5mW'
+
+
+
 
 Opto_or_Rew = 1 #1:Opto #2:Rew
 FiberROI = 2 #1:Fiber1, 2:Fiber2
@@ -31,10 +69,10 @@ degree = 4 #polyfit
 b_percentile = 0.70 #To calculare F0, median of bottom x%
 
 base = 120 #sec, set mannially if you do not have opto_stim.json
-trialN = 40 # this is mainly for "m" (5x5 design) 
+trialN = 10 # this is mainly for "m" (5x5 design) 
 StimPeriod = 2 #sec
 ITI = 28 #sec
-ITI = 118 #sec
+#ITI = 118 #sec
 
 if Opto_or_Rew == 1:
     OptoStim = np.arange(trialN) * (StimPeriod + ITI) + base
@@ -352,11 +390,11 @@ if Opto_or_Rew == 2:
 '''    
 #%%
 plt.subplot(gs[4:6, 0:2])
-
 PSTHplot(Psth_G_base, "g", "darkgreen", "Green_signal")
 PSTHplot(Psth_C_base, "b", "darkblue", "Iso_Ctrl")
 ymax = np.max([np.max(np.mean(Psth_G,axis=0))+1,5]) 
 plt.ylim([-5, np.max([ymax+5, 5])])
+plt.ylim([-1,10])
 plt.xlim([-5,15])
 plt.legend()
 plt.grid(True)

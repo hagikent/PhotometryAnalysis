@@ -27,6 +27,18 @@ AnalDir = r"F:\photometry_FIPopt\230428\669479"
 AnalDir = r"S:\KentaHagihara_InternalTransfer\DataTransfer_photometry_opto\231010\FIP_682498_2023-10-10_11-30-52"
 #AnalDir = r"S:\KentaHagihara_InternalTransfer\DataTransfer_photometry_opto\231010\FIP_682499_2023-10-10_13-46-04"
 AnalDir = r"S:\KentaHagihara_InternalTransfer\DataTransfer_photometry_opto\231019\FIP_689652_2023-10-19_16-33-07"
+AnalDir = r"S:\KentaHagihara_InternalTransfer\DataTransfer_photometry_opto\231107\FIP_691147_2023-11-07_18-17-08"
+
+AnalDir=r'S:\KentaHagihara_InternalTransfer\Integrated_Opto_Stim\240202\710414_p_15000'
+AnalDir=r'S:\KentaHagihara_InternalTransfer\Integrated_Opto_Stim\240202\710415_p_15000'
+AnalDir=r'S:\KentaHagihara_InternalTransfer\Integrated_Opto_Stim\240604\732054_i'
+
+
+AnalDir = r"S:\KentaHagihara_InternalTransfer\Integrated_Opto_Stim\241202\766245_L_i"
+AnalDir = r"S:\KentaHagihara_InternalTransfer\Integrated_Opto_Stim\241202\766245_R_i"
+AnalDir = r"S:\KentaHagihara_InternalTransfer\Integrated_Opto_Stim\241202\766248_L_i"
+#AnalDir = r"S:\KentaHagihara_InternalTransfer\Integrated_Opto_Stim\241202\766248_R_i"
+
 
 
 FiberROI = 1 #1:Fiber1, 2:Fiber2
@@ -52,7 +64,7 @@ if bool(glob.glob(AnalDir + os.sep + "*opto_stim.json")) == True:
     
 else:
     base = 120 #sec, set mannially if you do not have opto_stim.json
-    trialN = 40 #
+    trialN = 10 #
     StimPeriod = 2 #sec
     ITI = 28 #sec
 
@@ -107,9 +119,11 @@ R2_dF_F = pf.tc_preprocess(Data_Fiber2R, nFrame2cut, kernelSize, sampling_rate, 
 if FiberROI == 1:
     G_dF_F = G1_dF_F
     Ctrl_dF_F = Ctrl1_dF_F
+    R_dF_F = R1_dF_F
 elif FiberROI == 2:
     G_dF_F = G2_dF_F
-    Ctrl_dF_F = Ctrl2_dF_F  
+    Ctrl_dF_F = Ctrl2_dF_F
+    R_dF_F = R2_dF_F
 
 '''
 tc_cropped = pf.tc_crop(Data_Fiber1G, nFrame2cut)
@@ -168,7 +182,7 @@ plt.subplot(gs[0:2, 0:8])
 
 plt.plot(time_seconds, Ctrl_dF_F*100, 'blue', label='Iso_Ctrl')
 plt.plot(time_seconds, G_dF_F*100, 'green', label='Green_Signal')
-#lt.plot(time_seconds, R1_dF_F*100, 'magenta', label='R_artifact')
+plt.plot(time_seconds, R_dF_F*100, 'magenta', label='R_artifact')
 plt.plot(time_seconds, np.zeros(len(time_seconds)),'--k')
 plt.xlabel('Time (seconds)')
 plt.ylabel('dF/F (%)')

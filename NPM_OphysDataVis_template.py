@@ -2,7 +2,7 @@
 """
 Created on Tue Dec 20 22:29:19 2022
 
-NPM_2Opto
+NPM_OphysDataVis
 
 For opto-stimulation-based sensor screening
 
@@ -16,83 +16,110 @@ import numpy as np
 import csv
 import glob
 from scipy.optimize import curve_fit
+import json
 
-AnalDir = r"F:\Data\fpFIP_650120opto_2023-01-16_20-49-41"
-AnalDir = r"N:\workgroups\discovery\KentaHagihara\DataTransfer_photometry_FIPopt\230228\650102"
-AnalDir = r"N:\workgroups\discovery\KentaHagihara\DataTransfer_photometry_FIPopt\230228\650103"
-AnalDir = r"N:\workgroups\discovery\KentaHagihara\DataTransfer_photometry_FIPopt\230228\650105" 
-AnalDir = r"N:\workgroups\discovery\KentaHagihara\DataTransfer_photometry_FIPopt\230228\650119"
-AnalDir = r"N:\workgroups\discovery\KentaHagihara\DataTransfer_photometry_FIPopt\230228\650120"
+import PreprocessingFunctions as pf
 
-AnalDir = r"N:\workgroups\discovery\KentaHagihara\DataTransfer_photometry_FIPopt\230301\655422"   
-AnalDir = r"N:\workgroups\discovery\KentaHagihara\DataTransfer_photometry_FIPopt\230301\655424_2"
-AnalDir = r"N:\workgroups\discovery\KentaHagihara\DataTransfer_photometry_FIPopt\230301\655425"
-AnalDir = r"N:\workgroups\discovery\KentaHagihara\DataTransfer_photometry_FIPopt\230301\659080"
-AnalDir = r"N:\workgroups\discovery\KentaHagihara\DataTransfer_photometry_FIPopt\230301\659081"
-
-AnalDir = r"N:\workgroups\discovery\KentaHagihara\DataTransfer_photometry_FIPopt\230308\655422"
-
-AnalDir = r"N:\workgroups\discovery\KentaHagihara\DataTransfer_photometry_FIPopt\230310\655425_p_15000"
-
-AnalDir = r"N:\workgroups\discovery\KentaHagihara\DataTransfer_photometry_FIPopt\230309\659081_p_15000"
-AnalDir = r"N:\workgroups\discovery\KentaHagihara\DataTransfer_photometry_FIPopt\230309\659081_p_10000"
-AnalDir = r"N:\workgroups\discovery\KentaHagihara\DataTransfer_photometry_FIPopt\230309\659081_p_5000"
-AnalDir = r"N:\workgroups\discovery\KentaHagihara\DataTransfer_photometry_FIPopt\230310\655425_p_10000"
-
-AnalDir = r"S:\KentaHagihara_InternalTransfer\DataTransfer_photometry_opto\230315\655425_GBR_p_15000"
-AnalDir = r"S:\KentaHagihara_InternalTransfer\DataTransfer_photometry_opto\230315\655425_p_15000"
-AnalDir = r"F:\photometry_FIPopt\230421\669486"
+AnalDir = r""
 
 
-#AnalDir = r"S:\KentaHagihara_InternalTransfer\DataTransfer_photometry_opto\230417\669472_560nm"
-#AnalDir2 = r"S:\KentaHagihara_InternalTransfer\DataTransfer_photometry_opto\230417\669472_620nm"
 
+FiberROI = 1 #1:Fiber1, 2:Fiber2
 
-#AnalDir = r"S:\KentaHagihara_InternalTransfer\DataTransfer_photometry_opto\230315\655422_GBR_p_15000"
-#AnalDir = r"S:\KentaHagihara_InternalTransfer\DataTransfer_photometry_opto\230315\655422_p_15000"
-#AnalDir = r"S:\KentaHagihara_InternalTransfer\DataTransfer_photometry_opto\230315\655424_GBR_p_15000"
-#AnalDir = r"S:\KentaHagihara_InternalTransfer\DataTransfer_photometry_opto\230315\655424_p_15000"
+# params for pre-processing
+nFrame2cut = 100  #crop initial n frames
+sampling_rate = 20 #individual channel (not total)
+kernelSize = 1 #median filter
+degree = 4 #polyfit
+b_percentile = 0.70 #To calculare F0, median of bottom x%
 
-#AnalDir = r"S:\KentaHagihara_InternalTransfer\DataTransfer_photometry_opto\230315\655422_o_15000"
-#AnalDir = r"S:\KentaHagihara_InternalTransfer\DataTransfer_photometry_opto\230315\655425_q_15000"
-#AnalDir = r"S:\KentaHagihara_InternalTransfer\DataTransfer_photometry_opto\230315\655425_o_15000"
+# reading opto_stim.json for stimulation params
+if bool(glob.glob(AnalDir + os.sep + "*opto_stim.json")) == True:
+    stimfile  = glob.glob(AnalDir + os.sep + "*opto_stim.json")[0]
+    
+    with open(stimfile) as file:
+        dict = json.load(file)
+    
+    base = dict["baseline_duration"]
+    trialN = dict["number_pulse_trains"]
+    StimPeriod = dict["pulse_train_duration"] 
+    ITI = dict["pulse_train_interval"]
+    
+else:
+    base = 120 #sec, set mannially if you do not have opto_stim.json
+    trialN = 10 #
+    StimPeriod = 2 #sec
+    ITI = 28 #sec
 
-#AnalDir = r"N:\workgroups\discovery\KentaHagihara\photometry_FIPtemp_tower1\221221\650120_opto1"
-#AnalDir = r"N:\workgroups\discovery\KentaHagihara\photometry_FIPtemp_tower1\221221\650120_opto2"
+#%% read files
+file1  = glob.glob(AnalDir + os.sep + "FIP_DataIso*")[0]
+file2 = glob.glob(AnalDir + os.sep + "FIP_DataG*")[0]
+file3 = glob.glob(AnalDir + os.sep + "FIP_DataR*")[0]
 
-#AnalDir = r"S:\KentaHagihara_InternalTransfer\DataTransfer_photometry_opto\230315\655425_GBR_p_15000"
-#AnalDir = r"S:\KentaHagihara_InternalTransfer\DataTransfer_photometry_opto\230315\655425_p_15000"
-AnalDir = r"F:\photometry_FIPopt\230329\655425_GBR"
-AnalDir = r"S:\KentaHagihara_InternalTransfer\Integrated_Opto_Stim\241202\754431_L_i"
-
-sampling_rate = 20 #Hz
-base = 120 #sec
-trialN = 40 #
-StimPeriod = 2 #sec
-ITI = 28 #sec
-
-flag_compare = 0;
-
-
-Ctrl1_dF_F = np.load(glob.glob(AnalDir + os.sep + "Ctrl1_dF_F.npy")[0])
-G1_dF_F = np.load(glob.glob(AnalDir + os.sep + "G1_dF_F.npy")[0])
-
-#if flag_compare == 1:
-#    Ctrl2_dF_F = np.load(glob.glob(AnalDir2 + os.sep + "Ctrl1_dF_F.npy")[0])
-#    G2_dF_F = np.load(glob.glob(AnalDir2 + os.sep + "G1_dF_F.npy")[0])
-
-
-file_TS  = glob.glob(AnalDir + os.sep + "FIP_DataG_*")[0]
-with open(file_TS) as f:
+with open(file1) as f:
     reader = csv.reader(f)
     datatemp = np.array([row for row in reader])
-    data_TS = datatemp[1:,:].astype(np.float32)
-    del datatemp
+    data1 = datatemp[1:,:].astype(np.float32)
+    #del datatemp
     
-data_TS_temp = data_TS[:,0]
-time_seconds = (data_TS_temp - data_TS_temp[0])/1000 #ms to s 
+with open(file2) as f:
+    reader = csv.reader(f)
+    datatemp = np.array([row for row in reader])
+    data2 = datatemp[1:,:].astype(np.float32)
+    #del datatemp
     
-#time_seconds = np.arange(len(G1_dF_F)) /sampling_rate
+with open(file3) as f:
+    reader = csv.reader(f)
+    datatemp = np.array([row for row in reader])
+    data3 = datatemp[1:,:].astype(np.float32)
+    #del datatemp
+        
+# in case acquisition halted accidentally
+Length = np.amin([len(data1),len(data2),len(data3)])
+
+data1 = data1[0:Length] 
+data2 = data2[0:Length]
+data3 = data3[0:Length]
+
+PMts= data2[:,0]
+Data_Fiber1iso = data1[:,1]
+Data_Fiber1G = data2[:,1]
+Data_Fiber1R = data3[:,1]
+     
+Data_Fiber2iso = data1[:,2]
+Data_Fiber2G = data2[:,2]
+Data_Fiber2R = data3[:,2]
+
+#%% Preprocess
+Ctrl1_dF_F = pf.tc_preprocess(Data_Fiber1iso, nFrame2cut, kernelSize, sampling_rate, degree, b_percentile)
+G1_dF_F = pf.tc_preprocess(Data_Fiber1G, nFrame2cut, kernelSize, sampling_rate, degree, b_percentile)
+R1_dF_F = pf.tc_preprocess(Data_Fiber1R, nFrame2cut, kernelSize, sampling_rate, degree, b_percentile)
+
+Ctrl2_dF_F = pf.tc_preprocess(Data_Fiber2iso, nFrame2cut, kernelSize, sampling_rate, degree, b_percentile)
+G2_dF_F = pf.tc_preprocess(Data_Fiber2G, nFrame2cut, kernelSize, sampling_rate, degree, b_percentile)
+R2_dF_F = pf.tc_preprocess(Data_Fiber2R, nFrame2cut, kernelSize, sampling_rate, degree, b_percentile)
+
+if FiberROI == 1:
+    G_dF_F = G1_dF_F
+    Ctrl_dF_F = Ctrl1_dF_F
+    R_dF_F = R1_dF_F
+elif FiberROI == 2:
+    G_dF_F = G2_dF_F
+    Ctrl_dF_F = Ctrl2_dF_F
+    R_dF_F = R2_dF_F
+
+'''
+tc_cropped = pf.tc_crop(Data_Fiber1G, nFrame2cut)
+tc_filtered = pf.medfilt(tc_cropped, kernel_size=kernelSize)
+tc_filtered = pf.tc_lowcut(tc_filtered, sampling_rate)
+tc_poly = pf.tc_polyfit(tc_filtered, sampling_rate, degree)
+tc_estim = tc_filtered - tc_poly
+tc_base = pf.tc_slidingbase(tc_filtered, sampling_rate)
+tc_dFoF = pf.tc_dFF(tc_filtered, tc_base, b_percentile)
+tc_dFoF = pf.tc_filling(tc_dFoF, nFrame2cut)
+'''
+#%% 
+time_seconds = np.arange(len(G_dF_F)) /sampling_rate
 
 OptoStim = np.arange(trialN) * (StimPeriod + ITI) + base
 OptoStim = OptoStim * sampling_rate  #sec * Hz
@@ -136,9 +163,9 @@ gs = gridspec.GridSpec(6,8)
 plt.figure(figsize=(20, 8))
 plt.subplot(gs[0:2, 0:8])
 
-plt.plot(time_seconds, Ctrl1_dF_F*100, 'blue', label='Iso_Ctrl')
-plt.plot(time_seconds, G1_dF_F*100, 'green', label='Green_Signal')
-#lt.plot(time_seconds, R1_dF_F*100, 'magenta', label='R_artifact')
+plt.plot(time_seconds, Ctrl_dF_F*100, 'blue', label='Iso_Ctrl')
+plt.plot(time_seconds, G_dF_F*100, 'green', label='Green_Signal')
+plt.plot(time_seconds, R_dF_F*100, 'magenta', label='R_artifact')
 plt.plot(time_seconds, np.zeros(len(time_seconds)),'--k')
 plt.xlabel('Time (seconds)')
 plt.ylabel('dF/F (%)')
@@ -216,8 +243,8 @@ def PSTH_baseline(PSTH, preW):
     return PSTHbase
 
 #%%
-Psth_G = PSTHmaker(G1_dF_F*100, OptoStim, 100, 300)
-Psth_C = PSTHmaker(Ctrl1_dF_F*100, OptoStim, 100, 300)
+Psth_G = PSTHmaker(G_dF_F*100, OptoStim, 100, 300)
+Psth_C = PSTHmaker(Ctrl_dF_F*100, OptoStim, 100, 300)
 Psth_G_base = PSTH_baseline(Psth_G, 100)
 Psth_C_base = PSTH_baseline(Psth_C, 100)    
 
@@ -228,7 +255,7 @@ sampling_rate=20
 PSTHplot(Psth_G, "g", "darkgreen", "Green_signal")
 PSTHplot(Psth_C, "b", "darkblue", "Iso_Ctrl")
 ymax = np.max([np.max(np.mean(Psth_G,axis=0))+1,5]) 
-plt.ylim([-1.5, np.max([ymax+1, 5])])
+plt.ylim([-5, np.max([ymax+1, 5])])
 plt.xlim([-5,15])
 plt.legend()
 plt.grid(True)
@@ -237,20 +264,13 @@ plt.xlabel('Time (seconds) from StimOnsets')
 plt.ylabel('dF/F (%)')
 plt.axvspan(0, 2, color = [1, 0, 1, 0.4])
 
-if flag_compare == 1:
-    Psth_G2 = PSTHmaker(G2_dF_F*100, OptoStim, 100, 300)
-    Psth_G2_base = PSTH_baseline(Psth_G2, 100)
-    
-    PSTHplot(Psth_G2, "r", "Magenta", "GBR+")
-    plt.legend()
-
 #%%
 plt.subplot(gs[4:6, 2:4])
 
 PSTHplot(Psth_G_base, "g", "darkgreen", "Green_signal")
 PSTHplot(Psth_C_base, "b", "darkblue", "Iso_Ctrl")
 ymax = np.max([np.max(np.mean(Psth_G,axis=0))+1,5]) 
-plt.ylim([-1.5, np.max([ymax+5, 5])])
+plt.ylim([-5, np.max([ymax+5, 5])])
 plt.xlim([-5,15])
 plt.legend()
 plt.grid(True)
@@ -258,13 +278,7 @@ plt.title("LocalBase_subtracted, Mean+-SEM")
 plt.xlabel('Time (seconds) from StimOnsets')
 plt.axvspan(0, 2, color = [1, 0, 1, 0.4])
 
-if flag_compare == 1:
-    Psth_G2 = PSTHmaker(G2_dF_F*100, OptoStim, 100, 300)
-    Psth_G2_base = PSTH_baseline(Psth_G2, 100)    
-    PSTHplot(Psth_G2_base, "r", "darkred", "GBR+")
-    plt.legend()
-
-plt.savefig(AnalDir + os.sep + "OptoResp_dFoF_" + os.path.basename(AnalDir) +".pdf")
+#plt.savefig(AnalDir + os.sep + "OptoResp_dFoF_" + os.path.basename(AnalDir) +".pdf")
 
 #%% ExpFit
 
@@ -304,22 +318,10 @@ try:
     plt.xlabel("s")
     plt.ylabel("dF/F")
 
-    plt.savefig(AnalDir + os.sep + "OptoResp_dFoF_" + os.path.basename(AnalDir) +".pdf")
+    #plt.savefig(AnalDir + os.sep + "OptoResp_dFoF_" + os.path.basename(AnalDir) +".pdf")
 
 except RuntimeError:
     print("exp curve fitting failed. Skipped")
-
-
-#%% dataframe
-
-
-
-
-
-
-
-
-
 
 
 

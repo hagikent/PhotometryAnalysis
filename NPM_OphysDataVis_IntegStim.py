@@ -21,6 +21,26 @@ import PreprocessingFunctions as pf
 
 AnalDir = r"F:\IntegratedStim_temp\230505\test2_2fibers"
 
+
+
+
+# DA3m
+AnalDir = r"S:\KentaHagihara_InternalTransfer\Integrated_Opto_Stim\241210\765648_p_15000"
+AnalDir = r"S:\KentaHagihara_InternalTransfer\Integrated_Opto_Stim\241210\765649_p_15000"
+AnalDir = r"S:\KentaHagihara_InternalTransfer\Integrated_Opto_Stim\241210\765650_p_15000"
+AnalDir = r"S:\KentaHagihara_InternalTransfer\Integrated_Opto_Stim\241210\765651_p_15000"
+
+# 3.6
+#AnalDir = r"S:\KentaHagihara_InternalTransfer\Integrated_Opto_Stim\241210\765713_p_15000"
+#AnalDir = r"S:\KentaHagihara_InternalTransfer\Integrated_Opto_Stim\241210\765716_p_15000"
+#AnalDir = r"S:\KentaHagihara_InternalTransfer\Integrated_Opto_Stim\241210\765718_p_15000"
+
+# 3.8
+#AnalDir = r"S:\KentaHagihara_InternalTransfer\Integrated_Opto_Stim\241210\765720_p_15000"
+#AnalDir = r"S:\KentaHagihara_InternalTransfer\Integrated_Opto_Stim\241210\765721_p_15000"
+
+
+
 #Params
 nFibers = 2
 nColor = 3
@@ -139,8 +159,8 @@ gs = gridspec.GridSpec(8,8, wspace=1, hspace=0.5)
 plt.figure(figsize=(20, 8))
 plt.subplot(gs[0:2, 0:8])
 
-plt.plot(time_seconds, Ctrl1_dF_F*100, 'blue', label='Iso_Ctrl')
-plt.plot(time_seconds, G1_dF_F*100, 'olive', label='GCaMP_Signal')
+plt.plot(time_seconds, Ctrl2_dF_F*100, 'blue', label='Iso_Ctrl')
+plt.plot(time_seconds, G2_dF_F*100, 'olive', label='GCaMP_Signal')
 #plt.plot(time_seconds, R1_dF_F*100, 'magenta', label='R_artifact')
 plt.plot(time_seconds, np.zeros(len(time_seconds)),'--k')
 plt.xlabel('Time (seconds)')
@@ -155,8 +175,8 @@ for ii in range(trialN):
 
 plt.subplot(gs[3:5, 0:8])
 
-plt.plot(time_seconds, Ctrl2_dF_F*100, 'blue', label='Iso_Ctrl')
-plt.plot(time_seconds, G2_dF_F*100, 'green', label='GreenSensor_Signal')
+plt.plot(time_seconds, Ctrl1_dF_F*100, 'blue', label='Iso_Ctrl')
+plt.plot(time_seconds, G1_dF_F*100, 'green', label='GreenSensor_Signal')
 #plt.plot(time_seconds, R2_dF_F*100, 'magenta', label='R_artifact')
 plt.plot(time_seconds, np.zeros(len(time_seconds)),'--k')
 plt.xlabel('Time (seconds)')
@@ -249,10 +269,10 @@ plt.subplot(gs[6:8, 0:2])
 preW=100
 sampling_rate=20
 
-PSTHplot(Psth_G1, "olive", "darkolivegreen", "GCaMP")
-PSTHplot(Psth_C1, "aqua", "teal", "Iso_G")
-PSTHplot(Psth_G2, "g", "darkgreen", "Green_Sensor")
-PSTHplot(Psth_C2, "b", "darkblue", "Iso_Sensor")
+PSTHplot(Psth_G2, "olive", "darkolivegreen", "GCaMP")
+PSTHplot(Psth_C2, "aqua", "teal", "Iso_G")
+PSTHplot(Psth_G1, "g", "darkgreen", "Green_Sensor")
+PSTHplot(Psth_C1, "b", "darkblue", "Iso_Sensor")
 
 
 ymax = np.max([np.max(np.mean(Psth_G1,axis=0))+1,5]) 
@@ -268,10 +288,10 @@ plt.axvspan(0, 2, color = [1, 0, 1, 0.4])
 #%%
 plt.subplot(gs[6:8, 2:4])
 
-PSTHplot(Psth_G1_base, "olive", "darkolivegreen", "GCaMP")
-PSTHplot(Psth_C1_base, "aqua", "teal", "Iso_GCaMP")
-PSTHplot(Psth_G2_base, "g", "darkgreen", "Green_Sensor")
-PSTHplot(Psth_C2_base, "b", "darkblue", "Iso_Sensor")
+PSTHplot(Psth_G2_base, "olive", "darkolivegreen", "GCaMP")
+PSTHplot(Psth_C2_base, "aqua", "teal", "Iso_GCaMP")
+PSTHplot(Psth_G1_base, "g", "darkgreen", "Green_Sensor")
+PSTHplot(Psth_C1_base, "b", "darkblue", "Iso_Sensor")
 ymax = np.max([np.max(np.mean(Psth_G1,axis=0))+1,5]) 
 plt.ylim([-5, np.max([ymax+5, 5])])
 plt.xlim([-5,15])
@@ -291,10 +311,10 @@ def exponential_func(x, a, b, c):
 
 # Generate some data
 x_data_a = np.linspace(0, 2, 40)
-y_data_a = np.mean(Psth_G2[:, 100:140].T,axis=1)
+y_data_a = np.mean(Psth_G1[:, 100:140].T,axis=1)
 
 x_data_d = np.linspace(0, 7, 140)
-y_data_d = np.mean(Psth_G2[:, 140:280].T,axis=1)
+y_data_d = np.mean(Psth_G1[:, 140:280].T,axis=1)
 
 try:
     # Fit the data with the exponential function

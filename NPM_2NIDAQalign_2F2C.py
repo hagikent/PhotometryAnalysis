@@ -110,8 +110,27 @@ AnalDir = r"F:\Data\fpFIP_KH-FB51_2022-10-17_09-33-00"
 
 ## last NE cohort
 AnalDir = r"S:\KentaHagihara_InternalTransfer\DataTransfer_photometry_FIP2_T4\230925\673595"
-#AnalDir = r"F:\photometry_FIP3\230925\676353"
 
+## 231026 NE subselect
+AnalDir = r"S:\KentaHagihara_InternalTransfer\DataTransfer_photometry_FIP2\230424\KH_FB84"
+AnalDir = r"S:\KentaHagihara_InternalTransfer\DataTransfer_photometry_NPM\230502\KH_FB84"
+AnalDir = r"S:\KentaHagihara_InternalTransfer\DataTransfer_photometry_FIP2\230817\671631" 
+AnalDir = r"S:\KentaHagihara_InternalTransfer\DataTransfer_photometry_FIP2\230822\671631" #motion strong 
+AnalDir = r"S:\KentaHagihara_InternalTransfer\DataTransfer_photometry_FIP2\230606\666610"
+#AnalDir = r"S:\KentaHagihara_InternalTransfer\DataTransfer_photometry_FIP2\230609\666610"
+
+'''
+AnalDir = r"S:\KentaHagihara_InternalTransfer\DataTransfer_photometry_FIP2\230606\666612" #Flat
+AnalDir = r"S:\KentaHagihara_InternalTransfer\DataTransfer_photometry_FIP3\230530\666613"
+AnalDir = r"S:\KentaHagihara_InternalTransfer\DataTransfer_photometry_FIP3\230602\672208"
+AnalDir = r"S:\KentaHagihara_InternalTransfer\DataTransfer_photometry_FIP2\230818\673593"
+AnalDir = r"S:\KentaHagihara_InternalTransfer\DataTransfer_photometry_FIP3\230824\673594"
+AnalDir = r"S:\KentaHagihara_InternalTransfer\DataTransfer_photometry_FIP3\230828\671632"
+AnalDir = r"S:\KentaHagihara_InternalTransfer\DataTransfer_photometry_FIP2_T4\230921\673595"
+AnalDir = r"S:\KentaHagihara_InternalTransfer\DataTransfer_photometry_FIP2_T4\230925\673595"
+AnalDir = r"S:\KentaHagihara_InternalTransfer\DataTransfer_photometry_FIP3\230921\676353"
+'''
+#AnalDir = r"C:\Users\kenta.hagihara\Desktop\652737_230207"
 
 FlagNoRawLick = 0
 
